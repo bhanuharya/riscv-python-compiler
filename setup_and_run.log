@@ -1,0 +1,141 @@
+Activating Conda environment...
+Running command: source activate riscv-compiler
+Compiling Cython to C...
+Linking object file to create the executable...
+Running command: clang machine_code/bubble_sort.o -o machine_code/bubble_sort
+/usr/bin/ld: machine_code/bubble_sort.o: warning: relocation in read-only section `.rodata'
+/usr/bin/ld: /lib/x86_64-linux-gnu/Scrt1.o: in function `_start':
+(.text+0x1b): undefined reference to `main'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `PyInit_bubble_sort':
+bubble_sort.c:(.text+0x10): undefined reference to `PyModuleDef_Init'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__pyx_pymod_create':
+bubble_sort.c:(.text+0x9f): undefined reference to `PyObject_GetAttrString'
+/usr/bin/ld: bubble_sort.c:(.text+0xd3): undefined reference to `PyModule_NewObject'
+/usr/bin/ld: bubble_sort.c:(.text+0x117): undefined reference to `PyModule_GetDict'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__pyx_pymod_exec_bubble_sort':
+bubble_sort.c:(.text+0x31e): undefined reference to `PyExc_RuntimeError'
+/usr/bin/ld: bubble_sort.c:(.text+0x335): undefined reference to `PyErr_SetString'
+/usr/bin/ld: bubble_sort.c:(.text+0x370): undefined reference to `PyModule_GetDict'
+/usr/bin/ld: bubble_sort.c:(.text+0x4d9): undefined reference to `PyObject_SetAttrString'
+/usr/bin/ld: bubble_sort.c:(.text+0x55b): undefined reference to `PyTuple_New'
+/usr/bin/ld: bubble_sort.c:(.text+0x5c6): undefined reference to `PyBytes_FromStringAndSize'
+/usr/bin/ld: bubble_sort.c:(.text+0x631): undefined reference to `PyUnicode_FromStringAndSize'
+/usr/bin/ld: bubble_sort.c:(.text+0x736): undefined reference to `PyObject_SetAttr'
+/usr/bin/ld: bubble_sort.c:(.text+0x76d): undefined reference to `PyImport_GetModuleDict'
+/usr/bin/ld: bubble_sort.c:(.text+0x7ca): undefined reference to `PyDict_GetItemString'
+/usr/bin/ld: bubble_sort.c:(.text+0x7f7): undefined reference to `PyDict_SetItemString'
+/usr/bin/ld: bubble_sort.c:(.text+0x919): undefined reference to `PyDict_SetItem'
+/usr/bin/ld: bubble_sort.c:(.text+0x966): undefined reference to `PyDict_SetItem'
+/usr/bin/ld: bubble_sort.c:(.text+0xbbd): undefined reference to `PyNumber_Multiply'
+/usr/bin/ld: bubble_sort.c:(.text+0xc4a): undefined reference to `PyDict_SetItem'
+/usr/bin/ld: bubble_sort.c:(.text+0xfde): undefined reference to `PyDict_SetItem'
+/usr/bin/ld: bubble_sort.c:(.text+0x11e0): undefined reference to `PyDict_SetItem'
+/usr/bin/ld: bubble_sort.c:(.text+0x122d): undefined reference to `PyDict_New'
+/usr/bin/ld: bubble_sort.c:(.text+0x1291): undefined reference to `PyDict_SetItem'
+/usr/bin/ld: bubble_sort.c:(.text+0x1387): undefined reference to `PyErr_Occurred'
+/usr/bin/ld: bubble_sort.c:(.text+0x1399): undefined reference to `PyExc_ImportError'
+/usr/bin/ld: bubble_sort.c:(.text+0x13b0): undefined reference to `PyErr_SetString'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_check_single_interpreter':
+bubble_sort.c:(.text+0x13fa): undefined reference to `PyThreadState_Get'
+/usr/bin/ld: bubble_sort.c:(.text+0x140a): undefined reference to `PyInterpreterState_GetID'
+/usr/bin/ld: bubble_sort.c:(.text+0x1489): undefined reference to `PyExc_ImportError'
+/usr/bin/ld: bubble_sort.c:(.text+0x14a0): undefined reference to `PyErr_SetString'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `_Py_DECREF':
+bubble_sort.c:(.text+0x1518): undefined reference to `_Py_Dealloc'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_copy_spec_to_module':
+bubble_sort.c:(.text+0x1556): undefined reference to `PyObject_GetAttrString'
+/usr/bin/ld: bubble_sort.c:(.text+0x1590): undefined reference to `_Py_NoneStruct'
+/usr/bin/ld: bubble_sort.c:(.text+0x15ad): undefined reference to `PyDict_SetItemString'
+/usr/bin/ld: bubble_sort.c:(.text+0x15ce): undefined reference to `PyExc_AttributeError'
+/usr/bin/ld: bubble_sort.c:(.text+0x15db): undefined reference to `PyErr_ExceptionMatches'
+/usr/bin/ld: bubble_sort.c:(.text+0x15ec): undefined reference to `PyErr_Clear'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_PyImport_AddModuleRef':
+bubble_sort.c:(.text+0x1652): undefined reference to `PyImport_AddModule'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_check_binary_version':
+bubble_sort.c:(.text+0x1782): undefined reference to `PyOS_snprintf'
+/usr/bin/ld: bubble_sort.c:(.text+0x179d): undefined reference to `PyErr_WarnEx'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_get_runtime_version':
+bubble_sort.c:(.text+0x17ca): undefined reference to `Py_GetVersion'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_InitConstants':
+bubble_sort.c:(.text+0x190a): undefined reference to `PyLong_FromLong'
+/usr/bin/ld: bubble_sort.c:(.text+0x1989): undefined reference to `PyLong_FromLong'
+/usr/bin/ld: bubble_sort.c:(.text+0x1a0e): undefined reference to `PyLong_FromLong'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_GetBuiltinName':
+bubble_sort.c:(.text+0x1b9e): undefined reference to `PyErr_Occurred'
+/usr/bin/ld: bubble_sort.c:(.text+0x1bb0): undefined reference to `PyExc_NameError'
+/usr/bin/ld: bubble_sort.c:(.text+0x1bcb): undefined reference to `PyErr_Format'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx__GetModuleGlobalName':
+bubble_sort.c:(.text+0x1c1f): undefined reference to `_PyDict_GetItem_KnownHash'
+/usr/bin/ld: bubble_sort.c:(.text+0x1c7e): undefined reference to `PyErr_Occurred'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_PyInt_BoolEqObjC':
+bubble_sort.c:(.text+0x1d04): undefined reference to `PyLong_Type'
+/usr/bin/ld: bubble_sort.c:(.text+0x1f0c): undefined reference to `PyFloat_Type'
+/usr/bin/ld: bubble_sort.c:(.text+0x1f66): undefined reference to `PyObject_RichCompare'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_PyInt_SubtractObjC':
+bubble_sort.c:(.text+0x1fb4): undefined reference to `PyLong_Type'
+/usr/bin/ld: bubble_sort.c:(.text+0x2018): undefined reference to `PyLong_FromLong'
+/usr/bin/ld: bubble_sort.c:(.text+0x2115): undefined reference to `PyLong_Type'
+/usr/bin/ld: bubble_sort.c:(.text+0x214c): undefined reference to `PyLong_FromLong'
+/usr/bin/ld: bubble_sort.c:(.text+0x2165): undefined reference to `PyFloat_Type'
+/usr/bin/ld: bubble_sort.c:(.text+0x21af): undefined reference to `PyFloat_FromDouble'
+/usr/bin/ld: bubble_sort.c:(.text+0x21c6): undefined reference to `PyNumber_InPlaceSubtract'
+/usr/bin/ld: bubble_sort.c:(.text+0x21d0): undefined reference to `PyNumber_Subtract'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_PyInt_AddObjC':
+bubble_sort.c:(.text+0x2224): undefined reference to `PyLong_Type'
+/usr/bin/ld: bubble_sort.c:(.text+0x2387): undefined reference to `PyLong_Type'
+/usr/bin/ld: bubble_sort.c:(.text+0x23bd): undefined reference to `PyLong_FromLong'
+/usr/bin/ld: bubble_sort.c:(.text+0x23d6): undefined reference to `PyFloat_Type'
+/usr/bin/ld: bubble_sort.c:(.text+0x2420): undefined reference to `PyFloat_FromDouble'
+/usr/bin/ld: bubble_sort.c:(.text+0x2437): undefined reference to `PyNumber_InPlaceAdd'
+/usr/bin/ld: bubble_sort.c:(.text+0x2441): undefined reference to `PyNumber_Add'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_AddTraceback':
+bubble_sort.c:(.text+0x2498): undefined reference to `_PyThreadState_UncheckedGet'
+/usr/bin/ld: bubble_sort.c:(.text+0x25b9): undefined reference to `PyFrame_New'
+/usr/bin/ld: bubble_sort.c:(.text+0x25e2): undefined reference to `PyTraceBack_Here'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_InitString':
+bubble_sort.c:(.text+0x299b): undefined reference to `PyUnicode_InternFromString'
+/usr/bin/ld: bubble_sort.c:(.text+0x29c7): undefined reference to `PyUnicode_Decode'
+/usr/bin/ld: bubble_sort.c:(.text+0x29ea): undefined reference to `PyUnicode_FromStringAndSize'
+/usr/bin/ld: bubble_sort.c:(.text+0x2a0d): undefined reference to `PyBytes_FromStringAndSize'
+/usr/bin/ld: bubble_sort.c:(.text+0x2a3a): undefined reference to `PyObject_Hash'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_PyObject_GetAttrStrNoError':
+bubble_sort.c:(.text+0x2a89): undefined reference to `PyObject_GenericGetAttr'
+/usr/bin/ld: bubble_sort.c:(.text+0x2ab2): undefined reference to `_PyObject_GenericGetAttrWithDict'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_PyObject_GetAttrStr':
+bubble_sort.c:(.text+0x2b81): undefined reference to `PyObject_GetAttr'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_PyObject_GetAttrStr_ClearAttributeError':
+bubble_sort.c:(.text+0x2baa): undefined reference to `_PyThreadState_UncheckedGet'
+/usr/bin/ld: bubble_sort.c:(.text+0x2bbe): undefined reference to `PyExc_AttributeError'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_PyErr_GivenExceptionMatches':
+bubble_sort.c:(.text+0x30bc): undefined reference to `PyErr_GivenExceptionMatches'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_InBases':
+bubble_sort.c:(.text+0x374d): undefined reference to `PyBaseObject_Type'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_PyObject_IsTrue':
+bubble_sort.c:(.text+0x3822): undefined reference to `_Py_TrueStruct'
+/usr/bin/ld: bubble_sort.c:(.text+0x383e): undefined reference to `_Py_FalseStruct'
+/usr/bin/ld: bubble_sort.c:(.text+0x3856): undefined reference to `_Py_NoneStruct'
+/usr/bin/ld: bubble_sort.c:(.text+0x387f): undefined reference to `PyObject_IsTrue'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_CLineForTraceback':
+bubble_sort.c:(.text+0x3911): undefined reference to `_PyObject_GetDictPtr'
+/usr/bin/ld: bubble_sort.c:(.text+0x3a02): undefined reference to `PyObject_Not'
+/usr/bin/ld: bubble_sort.c:(.text+0x3a10): undefined reference to `_Py_FalseStruct'
+/usr/bin/ld: bubble_sort.c:(.text+0x3a1a): undefined reference to `_Py_TrueStruct'
+/usr/bin/ld: bubble_sort.c:(.text+0x3a3e): undefined reference to `PyErr_Clear'
+/usr/bin/ld: bubble_sort.c:(.text+0x3a77): undefined reference to `_Py_FalseStruct'
+/usr/bin/ld: bubble_sort.c:(.text+0x3a81): undefined reference to `PyObject_SetAttr'
+/usr/bin/ld: bubble_sort.c:(.text+0x3a93): undefined reference to `_Py_FalseStruct'
+/usr/bin/ld: bubble_sort.c:(.text+0x3aa8): undefined reference to `_Py_TrueStruct'
+/usr/bin/ld: bubble_sort.c:(.text+0x3abd): undefined reference to `PyObject_Not'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_CreateCodeObjectForTraceback':
+bubble_sort.c:(.text+0x3cdc): undefined reference to `PyUnicode_FromFormat'
+/usr/bin/ld: bubble_sort.c:(.text+0x3cfc): undefined reference to `PyUnicode_AsUTF8'
+/usr/bin/ld: bubble_sort.c:(.text+0x3d24): undefined reference to `PyCode_NewEmpty'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__pyx_insert_code_object':
+bubble_sort.c:(.text+0x3dce): undefined reference to `PyMem_Malloc'
+/usr/bin/ld: bubble_sort.c:(.text+0x3f16): undefined reference to `PyMem_Realloc'
+/usr/bin/ld: machine_code/bubble_sort.o: in function `__Pyx_PyDict_GetItemStr':
+bubble_sort.c:(.text+0x4022): undefined reference to `_PyDict_GetItem_KnownHash'
+/usr/bin/ld: bubble_sort.c:(.text+0x4039): undefined reference to `PyErr_Clear'
+/usr/bin/ld: warning: creating DT_TEXTREL in a PIE
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+Executable bubble_sort not generated! Exiting.

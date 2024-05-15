@@ -78,6 +78,8 @@ for i in range(len(arr)):
 # Build DAG
 dag_builder = DAGBuilder()
 dag_graph = dag_builder.build_dag(input_ast)
+ast_tree = ast.dump(input_ast)  
+print(ast_tree)
 print(dag_graph)
 
 # Render and display DAG
