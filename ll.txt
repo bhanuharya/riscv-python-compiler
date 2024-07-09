@@ -1,0 +1,78 @@
+; ModuleID = '<string>'
+source_filename = "<string>"
+target triple = "unknown-unknown-unknown"
+
+define i64 @test_while387960315629204036(i64 %x) {
+entry:
+  %.3 = alloca i64, align 8
+  store i64 %x, i64* %.3, align 4
+  %retval = alloca i64, align 8
+  %res = alloca i64, align 8
+  store i64 0, i64* %res, align 4
+  br label %while_cond_1
+
+exit:                                             ; preds = %while_after_1
+  %.18 = load i64, i64* %retval, align 4
+  ret i64 %.18
+
+while_cond_1:                                     ; preds = %while_then_1, %entry
+  %.7 = load i64, i64* %res, align 4
+  %.8 = load i64, i64* %.3, align 4
+  %.9 = icmp slt i64 %.7, %.8
+  br i1 %.9, label %while_then_1, label %while_after_1
+
+while_then_1:                                     ; preds = %while_cond_1
+  %.11 = load i64, i64* %res, align 4
+  %.12 = add i64 %.11, 1
+  store i64 %.12, i64* %res, align 4
+  br label %while_cond_1
+
+while_after_1:                                    ; preds = %while_cond_1
+  %.15 = load i64, i64* %res, align 4
+  store i64 %.15, i64* %retval, align 4
+  br label %exit
+}
+
+test_while_jit(100000000) = 100000000 (cost time: 0.0438690185546875 ms)
+test_while_nojit(100000000) = 100000000 (cost time: 2043.4062480926514 ms)
+rate: 46579.711956521736
+(base) harya@harya-vm:~/Documents/riscv-python-compiler$ /home/harya/miniforge3/bin/python /home/harya/Documents/riscv-python-compiler/example_while.py
+<function specialize.<locals>._wrapper at 0x764c5134d120>
+test_while_jit(100000000) = 100000000 (cost time: 0.03170967102050781 ms)
+test_while_nojit(100000000) = 100000000 (cost time: 1909.7411632537842 ms)
+rate: 60225.827067669175
+(base) harya@harya-vm:~/Documents/riscv-python-compiler$ /home/harya/miniforge3/bin/python /home/harya/Documents/riscv-python-compiler/example_while.py
+; ModuleID = '<string>'
+source_filename = "<string>"
+target triple = "unknown-unknown-unknown"
+
+define i64 @test_while3023630209780996335(i64 %x) {
+entry:
+  %.3 = alloca i64, align 8
+  store i64 %x, i64* %.3, align 4
+  %retval = alloca i64, align 8
+  %res = alloca i64, align 8
+  store i64 0, i64* %res, align 4
+  br label %while_cond_1
+
+exit:                                             ; preds = %while_after_1
+  %.18 = load i64, i64* %retval, align 4
+  ret i64 %.18
+
+while_cond_1:                                     ; preds = %while_then_1, %entry
+  %.7 = load i64, i64* %res, align 4
+  %.8 = load i64, i64* %.3, align 4
+  %.9 = icmp slt i64 %.7, %.8
+  br i1 %.9, label %while_then_1, label %while_after_1
+
+while_then_1:                                     ; preds = %while_cond_1
+  %.11 = load i64, i64* %res, align 4
+  %.12 = add i64 %.11, 1
+  store i64 %.12, i64* %res, align 4
+  br label %while_cond_1
+
+while_after_1:                                    ; preds = %while_cond_1
+  %.15 = load i64, i64* %res, align 4
+  store i64 %.15, i64* %retval, align 4
+  br label %exit
+}
