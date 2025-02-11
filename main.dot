@@ -1,0 +1,25 @@
+digraph "dag-combine1 input for test.main:entry" {
+	rankdir="BT";
+	label="dag-combine1 input for test.main:entry";
+
+	Node0x5d215f032dc8 [shape=record,shape=Mrecord,label="{EntryToken|t0|{<d0>ch}}"];
+	Node0x5d215f09afb8 [shape=record,shape=Mrecord,label="{Register %0|t1|{<d0>i32}}"];
+	Node0x5d215f09af50 [shape=record,shape=Mrecord,label="{{<s0>0|<s1>1}|CopyFromReg|t2|{<d0>i32|<d1>ch}}"];
+	Node0x5d215f09af50:s0 -> Node0x5d215f032dc8:d0[color=blue,style=dashed];
+	Node0x5d215f09af50:s1 -> Node0x5d215f09afb8:d0;
+	Node0x5d215f09aad8 [shape=record,shape=Mrecord,label="{Constant\<10\>|t3|{<d0>i32}}"];
+	Node0x5d215f09adb0 [shape=record,shape=Mrecord,label="{{<s0>0|<s1>1}|add|t4|{<d0>i32}}"];
+	Node0x5d215f09adb0:s0 -> Node0x5d215f09af50:d0;
+	Node0x5d215f09adb0:s1 -> Node0x5d215f09aad8:d0;
+	Node0x5d215f09ace0 [shape=record,shape=Mrecord,label="{Register $x10|t5|{<d0>i32}}"];
+	Node0x5d215f09ac10 [shape=record,shape=Mrecord,label="{{<s0>0|<s1>1|<s2>2}|CopyToReg|t6|{<d0>ch|<d1>glue}}"];
+	Node0x5d215f09ac10:s0 -> Node0x5d215f032dc8:d0[color=blue,style=dashed];
+	Node0x5d215f09ac10:s1 -> Node0x5d215f09ace0:d0;
+	Node0x5d215f09ac10:s2 -> Node0x5d215f09adb0:d0;
+	Node0x5d215f09aee8 [shape=record,shape=Mrecord,label="{{<s0>0|<s1>1|<s2>2}|RISCVISD::RET_FLAG|t7|{<d0>ch}}"];
+	Node0x5d215f09aee8:s0 -> Node0x5d215f09ac10:d0[color=blue,style=dashed];
+	Node0x5d215f09aee8:s1 -> Node0x5d215f09ace0:d0;
+	Node0x5d215f09aee8:s2 -> Node0x5d215f09ac10:d1[color=red,style=bold];
+	Node0x0[ plaintext=circle, label ="GraphRoot"];
+	Node0x0 -> Node0x5d215f09aee8:d0[color=blue,style=dashed];
+}

@@ -1,0 +1,29 @@
+digraph "dag-combine1 input for main:entry" {
+	rankdir="BT";
+	label="dag-combine1 input for main:entry";
+
+	Node0x5d215f032dc8 [shape=record,shape=Mrecord,label="{EntryToken|t0|{<d0>ch}}"];
+	Node0x5d215f09aa70 [shape=record,shape=Mrecord,label="{GlobalAddress\<i32 (i8*, ...)* @printf\> 0|t1|{<d0>i32}}"];
+	Node0x5d215f09aad8 [shape=record,shape=Mrecord,label="{GlobalAddress\<[4 x i8]* @\"0\"\> 0|t2|{<d0>i32}}"];
+	Node0x5d215f09ab40 [shape=record,shape=Mrecord,label="{Constant\<15\>|t3|{<d0>i32}}"];
+	Node0x5d215f09aba8 [shape=record,shape=Mrecord,label="{Register $x10|t4|{<d0>i32}}"];
+	Node0x5d215f09ac10 [shape=record,shape=Mrecord,label="{{<s0>0|<s1>1|<s2>2}|CopyToReg|t5|{<d0>ch|<d1>glue}}"];
+	Node0x5d215f09ac10:s0 -> Node0x5d215f032dc8:d0[color=blue,style=dashed];
+	Node0x5d215f09ac10:s1 -> Node0x5d215f09aba8:d0;
+	Node0x5d215f09ac10:s2 -> Node0x5d215f09aad8:d0;
+	Node0x5d215f09ac78 [shape=record,shape=Mrecord,label="{Register $x11|t6|{<d0>i32}}"];
+	Node0x5d215f09ace0 [shape=record,shape=Mrecord,label="{{<s0>0|<s1>1|<s2>2|<s3>3}|CopyToReg|t7|{<d0>ch|<d1>glue}}"];
+	Node0x5d215f09ace0:s0 -> Node0x5d215f09ac10:d0[color=blue,style=dashed];
+	Node0x5d215f09ace0:s1 -> Node0x5d215f09ac78:d0;
+	Node0x5d215f09ace0:s2 -> Node0x5d215f09ab40:d0;
+	Node0x5d215f09ace0:s3 -> Node0x5d215f09ac10:d1[color=red,style=bold];
+	Node0x5d215f09ad48 [shape=record,shape=Mrecord,label="{TargetGlobalAddress\<i32 (i8*, ...)* @printf\> 0 [TF=2]|t8|{<d0>i32}}"];
+	Node0x5d215f09adb0 [shape=record,shape=Mrecord,label="{{<s0>0|<s1>1|<s2>2|<s3>3|<s4>4}|RISCVISD::TAIL|t9|{<d0>ch|<d1>glue}}"];
+	Node0x5d215f09adb0:s0 -> Node0x5d215f09ace0:d0[color=blue,style=dashed];
+	Node0x5d215f09adb0:s1 -> Node0x5d215f09ad48:d0;
+	Node0x5d215f09adb0:s2 -> Node0x5d215f09aba8:d0;
+	Node0x5d215f09adb0:s3 -> Node0x5d215f09ac78:d0;
+	Node0x5d215f09adb0:s4 -> Node0x5d215f09ace0:d1[color=red,style=bold];
+	Node0x0[ plaintext=circle, label ="GraphRoot"];
+	Node0x0 -> Node0x5d215f09adb0:d0[color=blue,style=dashed];
+}
