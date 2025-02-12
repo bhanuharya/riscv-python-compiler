@@ -11,7 +11,7 @@ CLANG_NAME='clang'
 
 optimizatioms_help = r"""
     Basic optimizations:
-    simplify-cfg - Simplify Control Flow Graph
+    simplifycfg - Simplify Control Flow Graph
     instcombine - Combine Instructions
     sroa - Scalar Replacement of Aggregates
     dce - Dead Code Elimination
@@ -47,7 +47,7 @@ parser.add_argument('--dags', help='Show diagrams for dag based optimizations')
 parser.add_argument('--opt', '-o', nargs='+', help=optimizatioms_help)
 args = parser.parse_args()
 
-allowed_passes = ['simplify-cfg', 'instcombine', 'instcombine', 'sroa', 'dce', 'gvn',
+allowed_passes = ['simplifycfg', 'instcombine', 'instcombine', 'sroa', 'dce', 'gvn',
                   'memcpyopt', 'sccp', 'reassociate', 'loop-simplify', 'loop-unroll',
                   'loop-vectorize', 'licm', 'function-attrs', 'inline', 'globalopt', 'argpromotion', 'dse', 'deadargelim', 'mldst-motion']
 
