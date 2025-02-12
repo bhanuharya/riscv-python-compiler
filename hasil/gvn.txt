@@ -1,0 +1,119 @@
+ok
+🔹 Compiling Python to LLVM IR...
+🔹 Applying LLVM Optimizations: gvn
+🔹 Compiling to RISC-V Executable...
+✅ Executable Size: 8.1K
+✅ Instruction Count: 586
+🔹 Checking if rootfs.ext2 is mounted...
+🔹 Copying Executable to Root Filesystem...
+🔹 Checking Filesystem Integrity...
+
+🔹 Running QEMU & Executing Program...
+
+🔹 **Execution Output** 🔹
+
+Welcome to Buildroot
+
+
+buildroot login: root
+
+# cd /
+
+# time ./a.riscv
+
+test deret fibonacci
+
+1.000000
+
+1.000000
+
+2.000000
+
+3.000000
+
+5.000000
+
+8.000000
+
+13.000000
+
+21.000000
+
+34.000000
+
+55.000000
+
+89.000000
+
+144.000000
+
+233.000000
+
+377.000000
+
+610.000000
+
+987.000000
+
+1597.000000
+
+2584.000000
+
+4181.000000
+
+operasi aritmetika
+
+1
+
+1.500000
+
+11
+
+11.000000
+
+testing iterasi list
+
+[   16.666492] a.riscv[90]: unhandled signal 11 code 0x1 at 0x00000004 in libc.so.6[945e0000+15b000]
+
+[   16.667456] CPU: 0 PID: 90 Comm: a.riscv Not tainted 6.1.44 #1
+
+[   16.667834] Hardware name: riscv-virtio,qemu (DT)
+
+[   16.668175] epc : 94672944 ra : 94634188 sp : 9c6a5510
+
+[   16.668451]  gp : 6860d818 tp : 94748f20 t0 : 00000000
+
+[   16.668696]  t1 : 9c6a5ae4 t2 : 00000000 s0 : 9c6a59f8
+
+[   16.668935]  s1 : 9c6a5ae8 a0 : 00000005 a1 : 6860bbcb
+
+[   16.669180]  a2 : 00000000 a3 : 00000000 a4 : 00000053
+
+[   16.669416]  a5 : 00000004 a6 : 25252525 a7 : 25006f6c
+
+[   16.669650]  s2 : 00000000 s3 : ffffffff s4 : 00000073
+
+[   16.669892]  s5 : 94721c40 s6 : 00000000 s7 : 00000000
+
+[   16.670128]  s8 : 00000000 s9 : 00000005 s10: 00000000
+
+[   16.670366]  s11: 00000000 t3 : 6860bbcb t4 : 0000000a
+
+[   16.670815]  t5 : 00000000 t6 : 00000000
+
+[   16.671039] status: 80006020 badaddr: 00000004 cause: 0000000d
+
+Command terminated by signal 11
+
+real	0m 0.02s
+
+user	0m 0.00s
+
+sys	0m 0.02s
+
+🔹 **Build Summary** 🔹
+
+🔹 **Optimization Used:** gvn
+🔹 **Executable Size:** 8.1K
+🔹 **Instruction Count:** 586
+🔹 **Executable (.riscv) runtime (QEMU):** 0m 0.02s (real), 0m 0.00s (user), 0m 0.02s (sys)

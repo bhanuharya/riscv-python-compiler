@@ -111,7 +111,6 @@ class TypeChecker():
         This is the base function for type-checking a node
         it checks the node's type and goes to the appropriate function for it
         """
-        
         match node:
             case ast.Module():
                 statements = list[CheckedNode]()
@@ -486,7 +485,7 @@ class TypeChecker():
 
         Just look for the name using findSymbol
         """
-        
+
         self.errorInfo.lineNo = node.lineno
         name = node.id
         sym = self.findSymbol(name)

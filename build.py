@@ -68,6 +68,9 @@ if os.system(f'python main.py {args.filein}') != 0:
     exit()
 if os.system(f'opt-14 out.ll -o optimized.bc -passes={pass_string}') != 0:
     exit()
+# Generate RISC-V assembly from LLVM bitcode
+if os.system(f'{DEBUG_LLC} -march=riscv32 -mattr=+m,+a,+f,+d optimized.bc -o optimized.s') != 0:
+    exit()
 
 if args.dags:
     if os.system(f'{DEBUG_LLC} -view-dag-combine1-dags -filter-print-funcs=main optimized.bc') != 0:
