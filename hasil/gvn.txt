@@ -73,35 +73,35 @@ operasi aritmetika
 
 testing iterasi list
 
-[   16.666492] a.riscv[90]: unhandled signal 11 code 0x1 at 0x00000004 in libc.so.6[945e0000+15b000]
+[   16.650698] a.riscv[90]: unhandled signal 11 code 0x1 at 0x00000004 in libc.so.6[9465f000+15b000]
 
-[   16.667456] CPU: 0 PID: 90 Comm: a.riscv Not tainted 6.1.44 #1
+[   16.651533] CPU: 0 PID: 90 Comm: a.riscv Not tainted 6.1.44 #1
 
-[   16.667834] Hardware name: riscv-virtio,qemu (DT)
+[   16.651905] Hardware name: riscv-virtio,qemu (DT)
 
-[   16.668175] epc : 94672944 ra : 94634188 sp : 9c6a5510
+[   16.652240] epc : 946f1944 ra : 946b3188 sp : 9c24e510
 
-[   16.668451]  gp : 6860d818 tp : 94748f20 t0 : 00000000
+[   16.652522]  gp : 68591818 tp : 947c7f20 t0 : 00000000
 
-[   16.668696]  t1 : 9c6a5ae4 t2 : 00000000 s0 : 9c6a59f8
+[   16.652769]  t1 : 9c24eae4 t2 : 00000000 s0 : 9c24e9f8
 
-[   16.668935]  s1 : 9c6a5ae8 a0 : 00000005 a1 : 6860bbcb
+[   16.653222]  s1 : 9c24eae8 a0 : 00000005 a1 : 6858fbcb
 
-[   16.669180]  a2 : 00000000 a3 : 00000000 a4 : 00000053
+[   16.653472]  a2 : 00000000 a3 : 00000000 a4 : 00000053
 
-[   16.669416]  a5 : 00000004 a6 : 25252525 a7 : 25006f6c
+[   16.653714]  a5 : 00000004 a6 : 25252525 a7 : 25006f6c
 
-[   16.669650]  s2 : 00000000 s3 : ffffffff s4 : 00000073
+[   16.653955]  s2 : 00000000 s3 : ffffffff s4 : 00000073
 
-[   16.669892]  s5 : 94721c40 s6 : 00000000 s7 : 00000000
+[   16.654195]  s5 : 947a0c40 s6 : 00000000 s7 : 00000000
 
-[   16.670128]  s8 : 00000000 s9 : 00000005 s10: 00000000
+[   16.654431]  s8 : 00000000 s9 : 00000005 s10: 00000000
 
-[   16.670366]  s11: 00000000 t3 : 6860bbcb t4 : 0000000a
+[   16.654671]  s11: 00000000 t3 : 6858fbcb t4 : 0000000a
 
-[   16.670815]  t5 : 00000000 t6 : 00000000
+[   16.654897]  t5 : 00000000 t6 : 00000000
 
-[   16.671039] status: 80006020 badaddr: 00000004 cause: 0000000d
+[   16.655079] status: 80006020 badaddr: 00000004 cause: 0000000d
 
 Command terminated by signal 11
 
@@ -109,11 +109,11 @@ real	0m 0.02s
 
 user	0m 0.00s
 
-sys	0m 0.02s
+sys	0m 0.01s
 
 🔹 **Build Summary** 🔹
 
 🔹 **Optimization Used:** gvn
 🔹 **Executable Size:** 8.1K
 🔹 **Instruction Count:** 586
-🔹 **Executable (.riscv) runtime (QEMU):** 0m 0.02s (real), 0m 0.00s (user), 0m 0.02s (sys)
+🔹 **Executable (.riscv) runtime (QEMU):** 0m 0.02s (real), 0m 0.00s (user), 0m 0.01s (sys)
