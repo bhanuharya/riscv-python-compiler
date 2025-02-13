@@ -85,7 +85,7 @@ print("🔹 Running QEMU & Executing Program...")
 
 qemu_script = """
 #!/usr/bin/expect -f
-set timeout 30
+set timeout 12000
 spawn qemu-system-riscv32 -M virt -bios /home/bhanuharya/Documents/buildroot-2024.02.10/output/images/fw_jump.elf \
                           -kernel /home/bhanuharya/Documents/buildroot-2024.02.10/output/images/Image \
                           -append "rootwait root=/dev/vda ro" \

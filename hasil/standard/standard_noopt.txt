@@ -1,0 +1,60 @@
+ok
+🔹 Compiling Python to LLVM IR...
+🔹 Compiling to RISC-V Executable...
+✅ Executable Size: 8.1K
+✅ Instruction Count: 538
+🔹 Checking if rootfs.ext2 is mounted...
+🔹 Copying Executable to Root Filesystem...
+🔹 Checking Filesystem Integrity...
+
+🔹 Running QEMU & Executing Program...
+
+🔹 **Execution Output** 🔹
+
+Welcome to Buildroot
+
+
+buildroot login: root
+
+# cd /
+
+# time ./a.riscv
+
+1. List of string print
+
+foo
+
+bar
+
+str
+
+test
+
+halo
+
+2. Variabel
+
+some string
+
+3. Math Operations
+
+3.900000
+
+3. Flow Control
+
+1000
+
+Command exited with non-zero status 5
+
+real	0m 0.01s
+
+user	0m 0.00s
+
+sys	0m 0.01s
+
+🔹 **Build Summary** 🔹
+
+🔹 **Optimization Used:** None
+🔹 **Executable Size:** 8.1K
+🔹 **Instruction Count:** 538
+🔹 **Executable (.riscv) runtime (QEMU):** 0m 0.01s (real), 0m 0.00s (user), 0m 0.01s (sys)

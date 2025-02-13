@@ -1,0 +1,125 @@
+ok
+🔹 Compiling Python to LLVM IR...
+🔹 Applying LLVM Optimizations: gvn
+🔹 Compiling to RISC-V Executable...
+✅ Executable Size: 8.3K
+✅ Instruction Count: 708
+🔹 Checking if rootfs.ext2 is mounted...
+🔹 Copying Executable to Root Filesystem...
+🔹 Checking Filesystem Integrity...
+
+🔹 Running QEMU & Executing Program...
+
+🔹 **Execution Output** 🔹
+
+Welcome to Buildroot
+
+
+buildroot login: root
+
+# cd /
+
+# time ./a.riscv
+
+1. Fibonacci Sequence
+
+1.000000
+
+1.000000
+
+2.000000
+
+3.000000
+
+5.000000
+
+8.000000
+
+13.000000
+
+21.000000
+
+34.000000
+
+55.000000
+
+89.000000
+
+144.000000
+
+233.000000
+
+377.000000
+
+610.000000
+
+987.000000
+
+1597.000000
+
+2584.000000
+
+4181.000000
+
+2. Modified Fibonacci Sequence
+
+Modified Fibonacci(15):
+
+22000807.945225
+
+3. More Arithmetics
+
+1
+
+1.500000
+
+11
+
+11.000000
+
+4. List Iteration
+
+[   16.637651] a.riscv[90]: unhandled signal 11 code 0x1 at 0x00000004 in libc.so.6[94649000+15b000]
+
+[   16.638453] CPU: 0 PID: 90 Comm: a.riscv Not tainted 6.1.44 #1
+
+[   16.638801] Hardware name: riscv-virtio,qemu (DT)
+
+[   16.639114] epc : 946db944 ra : 9469d188 sp : 9c7604f0
+
+[   16.639360]  gp : 68619818 tp : 947b1f20 t0 : 00000000
+
+[   16.639602]  t1 : 9c760ac4 t2 : 00000000 s0 : 9c7609d8
+
+[   16.639827]  s1 : 9c760ac8 a0 : 00000005 a1 : 68617d98
+
+[   16.640029]  a2 : 00000000 a3 : 00000000 a4 : 00000053
+
+[   16.640247]  a5 : 00000004 a6 : 25252525 a7 : 000a7325
+
+[   16.640459]  s2 : 00000000 s3 : ffffffff s4 : 00000073
+
+[   16.640674]  s5 : 9478ac40 s6 : 00000000 s7 : 00000000
+
+[   16.641177]  s8 : 00000000 s9 : 00000005 s10: 00000000
+
+[   16.641390]  s11: 00000000 t3 : 68617d98 t4 : 0000000a
+
+[   16.641614]  t5 : 00000000 t6 : 00000000
+
+[   16.641791] status: 80006020 badaddr: 00000004 cause: 0000000d
+
+Command terminated by signal 11
+
+real	0m 0.02s
+
+user	0m 0.00s
+
+sys	0m 0.02s
+
+🔹 **Build Summary** 🔹
+
+🔹 **Optimization Used:** gvn
+🔹 **Executable Size:** 8.3K
+🔹 **Instruction Count:** 708
+🔹 **Executable (.riscv) runtime (QEMU):** 0m 0.02s (real), 0m 0.00s (user), 0m 0.02s (sys)

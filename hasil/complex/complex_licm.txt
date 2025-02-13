@@ -1,0 +1,123 @@
+ok
+🔹 Compiling Python to LLVM IR...
+🔹 Applying LLVM Optimizations: licm
+🔹 Compiling to RISC-V Executable...
+✅ Executable Size: 13K
+✅ Instruction Count: 1186
+🔹 Checking if rootfs.ext2 is mounted...
+🔹 Copying Executable to Root Filesystem...
+🔹 Checking Filesystem Integrity...
+
+🔹 Running QEMU & Executing Program...
+
+🔹 **Execution Output** 🔹
+
+Welcome to Buildroot
+
+
+buildroot login: root
+
+# cd /
+
+# time ./a.riscv
+
+Complex Cases
+
+1. Factorial
+
+1.000000
+
+1.000000
+
+2.000000
+
+6.000000
+
+24.000000
+
+120.000000
+
+720.000000
+
+5040.000000
+
+40320.000000
+
+362880.000000
+
+Matrix Multiply
+
+Matrix A:
+
+1.000000
+
+2.000000
+
+3.000000
+
+4.000000
+
+Matrix B:
+
+5.000000
+
+6.000000
+
+7.000000
+
+8.000000
+
+Resultant Matrix C:
+
+19.000000
+
+22.000000
+
+43.000000
+
+50.000000
+
+3. Euler's Number Approximation
+
+Computed e:
+
+2.718282
+
+4. Intensive Floating-Point Computation
+
+Final Computed Values:
+
+inf
+
+inf
+
+inf
+
+inf
+
+5. Matrix Exponentiation
+
+Final Matrix After Exponentiation:
+
+-8550298854660096612022787548220877226638977267531134696806701910573628232660332576768.000000
+
+113482952157013236854278844970773126392338408738842136453853030853908256743929434603520.000000
+
+-413302608579202967859832573945953002330487631417056247791607857222066090099188153974784.000000
+
+5586685335935423719904084085600530145023358581113514378544928395741639014963491530342400.000000
+
+Command exited with non-zero status 96
+
+real	0m 0.03s
+
+user	0m 0.01s
+
+sys	0m 0.01s
+
+🔹 **Build Summary** 🔹
+
+🔹 **Optimization Used:** licm
+🔹 **Executable Size:** 13K
+🔹 **Instruction Count:** 1186
+🔹 **Executable (.riscv) runtime (QEMU):** 0m 0.03s (real), 0m 0.01s (user), 0m 0.01s (sys)
