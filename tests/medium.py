@@ -9,7 +9,7 @@ def fibonacci(n: float) -> float:
 terms = 20
 
 for i in range(terms):
-    if i != 0:
+    if i != 0: 
         print(fibonacci(float(i)))
 
 

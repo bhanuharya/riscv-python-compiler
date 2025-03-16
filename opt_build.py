@@ -11,6 +11,7 @@ RISCV_DIR = '/opt/riscv'
 SYSROOT = f'{RISCV_DIR}/sysroot'
 CLANG = f'{RISCV_DIR}/bin/clang'
 LLVM_OBJDUMP = f'{RISCV_DIR}/bin/riscv32-unknown-linux-gnu-objdump'
+DEBUG_LLC=f'/home/bhanuharya/Documents/llvm-project/build/bin/llc'
 
 # QEMU Command with Detailed Logging
 QEMU_CMD = [
@@ -47,8 +48,12 @@ if pass_string:
     print(f"🔹 Applying LLVM Optimizations: {pass_string}")
     if os.system(f'opt-14 out.ll -o optimized.bc -passes={pass_string}') != 0:
         exit()
+    if os.system(f'{DEBUG_LLC} -march=riscv32 -mattr=+m,+a,+f,+d optimized.bc -o optimized.s') != 0:
+        exit()
 else:
     os.rename("out.ll", "optimized.bc")
+    if os.system(f'{DEBUG_LLC} -march=riscv32 -mattr=+m,+a,+f,+d optimized.bc -o optimized.s') != 0:
+        exit()
 
 # 🔹 Compile to RISC-V Executable
 print("🔹 Compiling to RISC-V Executable...")

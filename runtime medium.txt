@@ -1,0 +1,2954 @@
+Medium test case 
+
+1. Optimzations : None
+
+llvm ir:
+; ModuleID = '<string>'
+source_filename = "<string>"
+target datalayout = "e-m:e-i32:32-i16:16-i8:8-n32-S32"
+target triple = "riscv32-unknown-linux-gnu"
+
+%str = type { i32, i8* }
+%"list[int]" = type { i32, i32* }
+%"list[str]" = type { i32, %str* }
+
+@"0" = internal constant [4 x i8] c"%s\0A\00"
+@"1" = internal constant [22 x i8] c"1. Fibonacci Sequence\00"
+@"2" = internal constant [4 x i8] c"%f\0A\00"
+@"3" = internal constant [4 x i8] c"%s\0A\00"
+@"4" = internal constant [31 x i8] c"2. Modified Fibonacci Sequence\00"
+@"5" = internal constant [4 x i8] c"%s\0A\00"
+@"6" = internal constant [24 x i8] c"Modified Fibonacci(15):\00"
+@"7" = internal constant [4 x i8] c"%f\0A\00"
+@"8" = internal constant [4 x i8] c"%s\0A\00"
+@"9" = internal constant [20 x i8] c"3. More Arithmetics\00"
+@"10" = internal constant [4 x i8] c"%d\0A\00"
+@"11" = internal constant [4 x i8] c"%f\0A\00"
+@"12" = internal constant [4 x i8] c"%d\0A\00"
+@"13" = internal constant [4 x i8] c"%f\0A\00"
+@"14" = internal constant [4 x i8] c"%s\0A\00"
+@"15" = internal constant [18 x i8] c"4. List Iteration\00"
+@"16" = internal constant [4 x i8] c"foo\00"
+@"17" = internal constant [4 x i8] c"bar\00"
+@"18" = internal constant [4 x i8] c"str\00"
+@"19" = internal constant [5 x i8] c"test\00"
+@"20" = internal constant [5 x i8] c"halo\00"
+@"21" = internal constant [4 x i8] c"%s\0A\00"
+
+define void @main() {
+entry:
+  %.2 = getelementptr [4 x i8], [4 x i8]* @"0", i32 0, i32 0
+  %.3 = getelementptr [22 x i8], [22 x i8]* @"1", i32 0, i32 0
+  %.4 = alloca %str, align 8
+  %.5 = getelementptr %str, %str* %.4, i32 0, i32 0
+  %.6 = getelementptr %str, %str* %.4, i32 0, i32 1
+  store i32 21, i32* %.5, align 4
+  store i8* %.3, i8** %.6, align 8
+  %.9 = getelementptr %str, %str* %.4, i32 0, i32 1
+  %.10 = load i8*, i8** %.9, align 8
+  %print = call i32 (i8*, ...) @printf(i8* %.2, i8* %.10)
+  %.11 = alloca i32, align 4
+  store i32 20, i32* %.11, align 4
+  %.13 = alloca i32, align 4
+  %.14 = load i32, i32* %.11, align 4
+  %.15 = alloca i32, i32 %.14, align 4
+  %.16 = alloca i32, align 4
+  store i32 0, i32* %.16, align 4
+  br label %cond
+
+cond:                                             ; preds = %range-body, %entry
+  %.19 = load i32, i32* %.16, align 4
+  %.20 = icmp slt i32 %.19, %.14
+  br i1 %.20, label %range-body, label %after
+
+range-body:                                       ; preds = %cond
+  %.22 = getelementptr i32, i32* %.15, i32 %.19
+  store i32 %.19, i32* %.22, align 4
+  %.24 = add i32 %.19, 1
+  store i32 %.24, i32* %.16, align 4
+  br label %cond
+
+after:                                            ; preds = %cond
+  %.27 = alloca %"list[int]", align 8
+  %.28 = getelementptr %"list[int]", %"list[int]"* %.27, i32 0, i32 0
+  %.29 = getelementptr %"list[int]", %"list[int]"* %.27, i32 0, i32 1
+  store i32 %.14, i32* %.28, align 4
+  store i32* %.15, i32** %.29, align 8
+  %.32 = alloca i32, align 4
+  store i32 0, i32* %.32, align 4
+  br label %cond.1
+
+cond.1:                                           ; preds = %after.1, %after
+  %.35 = load i32, i32* %.32, align 4
+  %.36 = getelementptr %"list[int]", %"list[int]"* %.27, i32 0, i32 0
+  %.37 = load i32, i32* %.36, align 4
+  %.38 = icmp slt i32 %.35, %.37
+  br i1 %.38, label %for-body, label %orelse-body
+
+for-body:                                         ; preds = %cond.1
+  %.40 = getelementptr %"list[int]", %"list[int]"* %.27, i32 0, i32 1
+  %.41 = load i32*, i32** %.40, align 8
+  %.42 = getelementptr i32, i32* %.41, i32 %.35
+  %.43 = load i32, i32* %.42, align 4
+  store i32 %.43, i32* %.13, align 4
+  %.45 = load i32, i32* %.13, align 4
+  %.46 = icmp ne i32 %.45, 0
+  br i1 %.46, label %if-true, label %or-else
+
+orelse-body:                                      ; preds = %cond.1
+  br label %after-for
+
+after-for:                                        ; preds = %orelse-body
+  %.58 = getelementptr [4 x i8], [4 x i8]* @"3", i32 0, i32 0
+  %.59 = getelementptr [31 x i8], [31 x i8]* @"4", i32 0, i32 0
+  %.60 = alloca %str, align 8
+  %.61 = getelementptr %str, %str* %.60, i32 0, i32 0
+  %.62 = getelementptr %str, %str* %.60, i32 0, i32 1
+  store i32 30, i32* %.61, align 4
+  store i8* %.59, i8** %.62, align 8
+  %.65 = getelementptr %str, %str* %.60, i32 0, i32 1
+  %.66 = load i8*, i8** %.65, align 8
+  %print.2 = call i32 (i8*, ...) @printf(i8* %.58, i8* %.66)
+  %.67 = getelementptr [4 x i8], [4 x i8]* @"5", i32 0, i32 0
+  %.68 = getelementptr [24 x i8], [24 x i8]* @"6", i32 0, i32 0
+  %.69 = alloca %str, align 8
+  %.70 = getelementptr %str, %str* %.69, i32 0, i32 0
+  %.71 = getelementptr %str, %str* %.69, i32 0, i32 1
+  store i32 23, i32* %.70, align 4
+  store i8* %.68, i8** %.71, align 8
+  %.74 = getelementptr %str, %str* %.69, i32 0, i32 1
+  %.75 = load i8*, i8** %.74, align 8
+  %print.3 = call i32 (i8*, ...) @printf(i8* %.67, i8* %.75)
+  %.76 = getelementptr [4 x i8], [4 x i8]* @"7", i32 0, i32 0
+  %.77 = call double @medium.modified_fibonacci(double 1.500000e+01)
+  %print.4 = call i32 (i8*, ...) @printf(i8* %.76, double %.77)
+  %.78 = getelementptr [4 x i8], [4 x i8]* @"8", i32 0, i32 0
+  %.79 = getelementptr [20 x i8], [20 x i8]* @"9", i32 0, i32 0
+  %.80 = alloca %str, align 8
+  %.81 = getelementptr %str, %str* %.80, i32 0, i32 0
+  %.82 = getelementptr %str, %str* %.80, i32 0, i32 1
+  store i32 19, i32* %.81, align 4
+  store i8* %.79, i8** %.82, align 8
+  %.85 = getelementptr %str, %str* %.80, i32 0, i32 1
+  %.86 = load i8*, i8** %.85, align 8
+  %print.5 = call i32 (i8*, ...) @printf(i8* %.78, i8* %.86)
+  %.87 = alloca i32, align 4
+  store i32 3, i32* %.87, align 4
+  %.89 = alloca i32, align 4
+  store i32 2, i32* %.89, align 4
+  %.91 = alloca i32, align 4
+  %.92 = load i32, i32* %.87, align 4
+  %.93 = load i32, i32* %.89, align 4
+  %.94 = sdiv i32 %.92, %.93
+  store i32 %.94, i32* %.91, align 4
+  %.96 = getelementptr [4 x i8], [4 x i8]* @"10", i32 0, i32 0
+  %.97 = load i32, i32* %.91, align 4
+  %print.6 = call i32 (i8*, ...) @printf(i8* %.96, i32 %.97)
+  %.98 = alloca double, align 8
+  %.99 = load i32, i32* %.87, align 4
+  %.100 = sitofp i32 %.99 to double
+  %.101 = load i32, i32* %.89, align 4
+  %.102 = sitofp i32 %.101 to double
+  %.103 = fdiv double %.100, %.102
+  store double %.103, double* %.98, align 8
+  %.105 = getelementptr [4 x i8], [4 x i8]* @"11", i32 0, i32 0
+  %.106 = load double, double* %.98, align 8
+  %print.7 = call i32 (i8*, ...) @printf(i8* %.105, double %.106)
+  %.107 = alloca i32, align 4
+  %.108 = mul i32 5, 2
+  %.109 = add i32 3, %.108
+  %.110 = sdiv i32 8, 4
+  %.111 = sub i32 %.109, %.110
+  store i32 %.111, i32* %.107, align 4
+  %.113 = getelementptr [4 x i8], [4 x i8]* @"12", i32 0, i32 0
+  %.114 = load i32, i32* %.107, align 4
+  %print.8 = call i32 (i8*, ...) @printf(i8* %.113, i32 %.114)
+  %.115 = alloca double, align 8
+  %.116 = sitofp i32 3 to double
+  %.117 = sitofp i32 5 to double
+  %.118 = sitofp i32 2 to double
+  %.119 = fmul double %.117, %.118
+  %.120 = fadd double %.116, %.119
+  %.121 = sitofp i32 8 to double
+  %.122 = sitofp i32 4 to double
+  %.123 = fdiv double %.121, %.122
+  %.124 = fsub double %.120, %.123
+  store double %.124, double* %.115, align 8
+  %.126 = getelementptr [4 x i8], [4 x i8]* @"13", i32 0, i32 0
+  %.127 = load double, double* %.115, align 8
+  %print.9 = call i32 (i8*, ...) @printf(i8* %.126, double %.127)
+  %.128 = getelementptr [4 x i8], [4 x i8]* @"14", i32 0, i32 0
+  %.129 = getelementptr [18 x i8], [18 x i8]* @"15", i32 0, i32 0
+  %.130 = alloca %str, align 8
+  %.131 = getelementptr %str, %str* %.130, i32 0, i32 0
+  %.132 = getelementptr %str, %str* %.130, i32 0, i32 1
+  store i32 17, i32* %.131, align 4
+  store i8* %.129, i8** %.132, align 8
+  %.135 = getelementptr %str, %str* %.130, i32 0, i32 1
+  %.136 = load i8*, i8** %.135, align 8
+  %print.10 = call i32 (i8*, ...) @printf(i8* %.128, i8* %.136)
+  %.137 = alloca %"list[str]", align 8
+  %.138 = getelementptr [4 x i8], [4 x i8]* @"16", i32 0, i32 0
+  %.139 = alloca %str, align 8
+  %.140 = getelementptr %str, %str* %.139, i32 0, i32 0
+  %.141 = getelementptr %str, %str* %.139, i32 0, i32 1
+  store i32 3, i32* %.140, align 4
+  store i8* %.138, i8** %.141, align 8
+  %.144 = getelementptr [4 x i8], [4 x i8]* @"17", i32 0, i32 0
+  %.145 = alloca %str, align 8
+  %.146 = getelementptr %str, %str* %.145, i32 0, i32 0
+  %.147 = getelementptr %str, %str* %.145, i32 0, i32 1
+  store i32 3, i32* %.146, align 4
+  store i8* %.144, i8** %.147, align 8
+  %.150 = getelementptr [4 x i8], [4 x i8]* @"18", i32 0, i32 0
+  %.151 = alloca %str, align 8
+  %.152 = getelementptr %str, %str* %.151, i32 0, i32 0
+  %.153 = getelementptr %str, %str* %.151, i32 0, i32 1
+  store i32 3, i32* %.152, align 4
+  store i8* %.150, i8** %.153, align 8
+  %.156 = getelementptr [5 x i8], [5 x i8]* @"19", i32 0, i32 0
+  %.157 = alloca %str, align 8
+  %.158 = getelementptr %str, %str* %.157, i32 0, i32 0
+  %.159 = getelementptr %str, %str* %.157, i32 0, i32 1
+  store i32 4, i32* %.158, align 4
+  store i8* %.156, i8** %.159, align 8
+  %.162 = getelementptr [5 x i8], [5 x i8]* @"20", i32 0, i32 0
+  %.163 = alloca %str, align 8
+  %.164 = getelementptr %str, %str* %.163, i32 0, i32 0
+  %.165 = getelementptr %str, %str* %.163, i32 0, i32 1
+  store i32 4, i32* %.164, align 4
+  store i8* %.162, i8** %.165, align 8
+  %.168 = alloca %"list[str]", align 8
+  %.169 = getelementptr %"list[str]", %"list[str]"* %.168, i32 0, i32 0
+  store i32 5, i32* %.169, align 4
+  %.171 = alloca %str, i32 5, align 8
+  %.172 = getelementptr %"list[str]", %"list[str]"* %.168, i32 0, i32 1
+  store %str* %.171, %str** %.172, align 8
+  %.174 = getelementptr %str, %str* %.171, i32 0
+  %.175 = bitcast %str* %.174 to i8*
+  %.176 = bitcast %str* %.139 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.175, i8* %.176, i32 8, i1 false)
+  %.178 = getelementptr %str, %str* %.171, i32 1
+  %.179 = bitcast %str* %.178 to i8*
+  %.180 = bitcast %str* %.145 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.179, i8* %.180, i32 8, i1 false)
+  %.182 = getelementptr %str, %str* %.171, i32 2
+  %.183 = bitcast %str* %.182 to i8*
+  %.184 = bitcast %str* %.151 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.183, i8* %.184, i32 8, i1 false)
+  %.186 = getelementptr %str, %str* %.171, i32 3
+  %.187 = bitcast %str* %.186 to i8*
+  %.188 = bitcast %str* %.157 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.187, i8* %.188, i32 8, i1 false)
+  %.190 = getelementptr %str, %str* %.171, i32 4
+  %.191 = bitcast %str* %.190 to i8*
+  %.192 = bitcast %str* %.163 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.191, i8* %.192, i32 8, i1 false)
+  %.194 = bitcast %"list[str]"* %.137 to i8*
+  %.195 = bitcast %"list[str]"* %.168 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.194, i8* %.195, i32 8, i1 false)
+  %.197 = alloca %str, align 8
+  %.198 = alloca i32, align 4
+  store i32 0, i32* %.198, align 4
+  br label %cond.2
+
+if-true:                                          ; preds = %for-body
+  %.48 = getelementptr [4 x i8], [4 x i8]* @"2", i32 0, i32 0
+  %.49 = load i32, i32* %.13, align 4
+  %.50 = sitofp i32 %.49 to double
+  %.51 = call double @medium.fibonacci(double %.50)
+  %print.1 = call i32 (i8*, ...) @printf(i8* %.48, double %.51)
+  br label %after.1
+
+or-else:                                          ; preds = %for-body
+  br label %after.1
+
+after.1:                                          ; preds = %or-else, %if-true
+  %.54 = add i32 %.35, 1
+  store i32 %.54, i32* %.32, align 4
+  br label %cond.1
+
+cond.2:                                           ; preds = %for-body.1, %after-for
+  %.201 = load i32, i32* %.198, align 4
+  %.202 = getelementptr %"list[str]", %"list[str]"* %.137, i32 0, i32 0
+  %.203 = load i32, i32* %.202, align 4
+  %.204 = icmp slt i32 %.201, %.203
+  br i1 %.204, label %for-body.1, label %orelse-body.1
+
+for-body.1:                                       ; preds = %cond.2
+  %.206 = getelementptr %"list[str]", %"list[str]"* %.137, i32 0, i32 1
+  %.207 = load %str*, %str** %.206, align 8
+  %.208 = getelementptr %str, %str* %.207, i32 %.201
+  %.209 = bitcast %str* %.197 to i8*
+  %.210 = bitcast %str* %.208 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.209, i8* %.210, i32 8, i1 false)
+  %.212 = getelementptr [4 x i8], [4 x i8]* @"21", i32 0, i32 0
+  %.213 = getelementptr %str, %str* %.197, i32 0, i32 1
+  %.214 = load i8*, i8** %.213, align 8
+  %print.11 = call i32 (i8*, ...) @printf(i8* %.212, i8* %.214)
+  %.215 = add i32 %.201, 1
+  store i32 %.215, i32* %.198, align 4
+  br label %cond.2
+
+orelse-body.1:                                    ; preds = %cond.2
+  br label %after-for.1
+
+after-for.1:                                      ; preds = %orelse-body.1
+  ret void
+}
+
+declare i32 @printf(i8*, ...)
+
+declare i8* @readline(i8*, ...)
+
+declare i32 @strlen(i8*, ...)
+
+declare i16 @memcmp(i8*, i8*, i32)
+
+define double @medium.fibonacci(double %.1) {
+entry:
+  %.3 = alloca double, align 8
+  store double %.1, double* %.3, align 8
+  %.5 = load double, double* %.3, align 8
+  %.6 = fcmp ole double %.5, 1.000000e+00
+  br i1 %.6, label %if-true, label %or-else
+
+if-true:                                          ; preds = %entry
+  %.8 = load double, double* %.3, align 8
+  ret double %.8
+
+or-else:                                          ; preds = %entry
+  %.10 = load double, double* %.3, align 8
+  %.11 = fsub double %.10, 1.000000e+00
+  %.12 = call double @medium.fibonacci(double %.11)
+  %.13 = load double, double* %.3, align 8
+  %.14 = fsub double %.13, 2.000000e+00
+  %.15 = call double @medium.fibonacci(double %.14)
+  %.16 = fadd double %.12, %.15
+  ret double %.16
+
+after:                                            ; No predecessors!
+  %.18 = alloca double, align 8
+  %.19 = load double, double* %.18, align 8
+  ret double %.19
+}
+
+define double @medium.modified_fibonacci(double %.1) {
+entry:
+  %.3 = alloca double, align 8
+  store double %.1, double* %.3, align 8
+  %.5 = load double, double* %.3, align 8
+  %.6 = fcmp ole double %.5, 1.000000e+00
+  br i1 %.6, label %if-true, label %or-else
+
+if-true:                                          ; preds = %entry
+  ret double 1.000000e+00
+
+or-else:                                          ; preds = %entry
+  br label %after
+
+after:                                            ; preds = %or-else
+  %.10 = alloca double, align 8
+  %.11 = load double, double* %.3, align 8
+  %.12 = fsub double %.11, 1.000000e+00
+  %.13 = call double @medium.modified_fibonacci(double %.12)
+  store double %.13, double* %.10, align 8
+  %.15 = alloca double, align 8
+  %.16 = load double, double* %.3, align 8
+  %.17 = fsub double %.16, 2.000000e+00
+  %.18 = call double @medium.modified_fibonacci(double %.17)
+  store double %.18, double* %.15, align 8
+  %.20 = alloca double, align 8
+  %.21 = load double, double* %.10, align 8
+  %.22 = fmul double %.21, 1.000100e+00
+  %.23 = load double, double* %.15, align 8
+  %.24 = fdiv double %.23, 1.000200e+00
+  %.25 = fsub double %.22, %.24
+  %.26 = fmul double %.25, 1.000300e+00
+  store double %.26, double* %.20, align 8
+  %.28 = alloca double, align 8
+  %.29 = load double, double* %.15, align 8
+  %.30 = fmul double %.29, 1.000400e+00
+  %.31 = load double, double* %.10, align 8
+  %.32 = fdiv double %.31, 1.000500e+00
+  %.33 = fadd double %.30, %.32
+  %.34 = fmul double %.33, 1.000600e+00
+  store double %.34, double* %.28, align 8
+  %.36 = load double, double* %.10, align 8
+  %.37 = load double, double* %.15, align 8
+  %.38 = fadd double %.36, %.37
+  %.39 = load double, double* %.20, align 8
+  %.40 = fadd double %.38, %.39
+  %.41 = load double, double* %.28, align 8
+  %.42 = fadd double %.40, %.41
+  ret double %.42
+}
+
+; Function Attrs: argmemonly nofree nounwind willreturn
+declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+
+attributes #0 = { argmemonly nofree nounwind willreturn }
+
+
+assembly : 
+	.text
+	.attribute	4, 16
+	.attribute	5, "rv32i2p0_m2p0_a2p0_f2p0_d2p0"
+	.file	"<string>"
+	.globl	main                            # -- Begin function main
+	.p2align	2
+	.type	main,@function
+main:                                   # @main
+	.cfi_startproc
+# %bb.0:                                # %entry
+	addi	sp, sp, -64
+	.cfi_def_cfa_offset 64
+	sw	ra, 60(sp)                      # 4-byte Folded Spill
+	sw	s0, 56(sp)                      # 4-byte Folded Spill
+	sw	s1, 52(sp)                      # 4-byte Folded Spill
+	sw	s2, 48(sp)                      # 4-byte Folded Spill
+	sw	s3, 44(sp)                      # 4-byte Folded Spill
+	sw	s4, 40(sp)                      # 4-byte Folded Spill
+	sw	s5, 36(sp)                      # 4-byte Folded Spill
+	.cfi_offset ra, -4
+	.cfi_offset s0, -8
+	.cfi_offset s1, -12
+	.cfi_offset s2, -16
+	.cfi_offset s3, -20
+	.cfi_offset s4, -24
+	.cfi_offset s5, -28
+	addi	s0, sp, 64
+	.cfi_def_cfa s0, 0
+	lui	a0, %hi(0)
+	addi	a0, a0, %lo(0)
+	lui	a1, %hi(1)
+	addi	a1, a1, %lo(1)
+	li	a2, 21
+	sw	a2, -40(s0)
+	sw	a1, -36(s0)
+	call	printf@plt
+	li	a0, 20
+	sw	a0, -44(s0)
+	addi	a1, sp, -80
+	mv	sp, a1
+	sw	zero, -52(s0)
+	lw	a2, -52(s0)
+	bge	a2, a0, .LBB0_2
+.LBB0_1:                                # %range-body
+                                        # =>This Inner Loop Header: Depth=1
+	slli	a3, a2, 2
+	add	a3, a1, a3
+	sw	a2, 0(a3)
+	addi	a2, a2, 1
+	sw	a2, -52(s0)
+	lw	a2, -52(s0)
+	blt	a2, a0, .LBB0_1
+.LBB0_2:                                # %after
+	mv	a2, sp
+	addi	s2, a2, -16
+	mv	sp, s2
+	sw	a0, -16(a2)
+	sw	a1, -12(a2)
+	mv	a0, sp
+	addi	s3, a0, -16
+	mv	sp, s3
+	sw	zero, -16(a0)
+	lui	a0, %hi(2)
+	addi	s1, a0, %lo(2)
+	j	.LBB0_4
+.LBB0_3:                                # %after.1
+                                        #   in Loop: Header=BB0_4 Depth=1
+	addi	a0, s4, 1
+	sw	a0, 0(s3)
+.LBB0_4:                                # %cond.1
+                                        # =>This Inner Loop Header: Depth=1
+	lw	s4, 0(s3)
+	lw	a0, 0(s2)
+	bge	s4, a0, .LBB0_7
+# %bb.5:                                # %for-body
+                                        #   in Loop: Header=BB0_4 Depth=1
+	lw	a0, 4(s2)
+	slli	a1, s4, 2
+	add	a0, a0, a1
+	lw	a0, 0(a0)
+	sw	a0, -48(s0)
+	beqz	a0, .LBB0_3
+# %bb.6:                                # %if-true
+                                        #   in Loop: Header=BB0_4 Depth=1
+	lw	a0, -48(s0)
+	fcvt.d.w	ft0, a0
+	fsd	ft0, -64(s0)
+	lw	a0, -64(s0)
+	lw	a1, -60(s0)
+	call	medium.fibonacci@plt
+	mv	a2, a0
+	mv	a0, s1
+	mv	a3, a1
+	call	printf@plt
+	j	.LBB0_3
+.LBB0_7:                                # %orelse-body
+	lui	a0, %hi(3)
+	addi	a0, a0, %lo(3)
+	lui	a1, %hi(4)
+	addi	a1, a1, %lo(4)
+	mv	a2, sp
+	addi	sp, a2, -16
+	li	a3, 30
+	sw	a3, -16(a2)
+	sw	a1, -12(a2)
+	call	printf@plt
+	lui	a0, %hi(5)
+	addi	a0, a0, %lo(5)
+	lui	a1, %hi(6)
+	addi	a1, a1, %lo(6)
+	mv	a2, sp
+	addi	sp, a2, -16
+	li	a3, 23
+	sw	a3, -16(a2)
+	sw	a1, -12(a2)
+	call	printf@plt
+	lui	a0, %hi(7)
+	addi	s1, a0, %lo(7)
+	lui	a1, 262880
+	li	a0, 0
+	call	medium.modified_fibonacci@plt
+	mv	a2, a0
+	mv	a0, s1
+	mv	a3, a1
+	call	printf@plt
+	lui	a0, %hi(8)
+	addi	a0, a0, %lo(8)
+	lui	a1, %hi(9)
+	addi	a1, a1, %lo(9)
+	mv	a2, sp
+	addi	sp, a2, -16
+	li	a3, 19
+	sw	a3, -16(a2)
+	sw	a1, -12(a2)
+	call	printf@plt
+	mv	s2, sp
+	addi	sp, s2, -16
+	li	s1, 3
+	sw	s1, -16(s2)
+	mv	s3, sp
+	addi	sp, s3, -16
+	li	a0, 2
+	sw	a0, -16(s3)
+	mv	a0, sp
+	addi	sp, a0, -16
+	lw	a1, -16(s2)
+	lw	a2, -16(s3)
+	div	a1, a1, a2
+	sw	a1, -16(a0)
+	lui	a0, %hi(10)
+	addi	a0, a0, %lo(10)
+	call	printf@plt
+	mv	a0, sp
+	addi	sp, a0, -16
+	lw	a1, -16(s2)
+	lw	a2, -16(s3)
+	fcvt.d.w	ft0, a1
+	fcvt.d.w	ft1, a2
+	fdiv.d	ft0, ft0, ft1
+	fsd	ft0, -16(a0)
+	fsd	ft0, -64(s0)
+	lw	a2, -64(s0)
+	lw	a3, -60(s0)
+	lui	a0, %hi(11)
+	addi	a0, a0, %lo(11)
+	call	printf@plt
+	mv	a0, sp
+	addi	sp, a0, -16
+	li	a1, 11
+	sw	a1, -16(a0)
+	lui	a0, %hi(12)
+	addi	a0, a0, %lo(12)
+	li	a1, 11
+	call	printf@plt
+	mv	a0, sp
+	addi	sp, a0, -16
+	lui	a1, 262752
+	sw	a1, -12(a0)
+	sw	zero, -16(a0)
+	lui	a0, %hi(13)
+	addi	a0, a0, %lo(13)
+	lui	a3, 262752
+	li	a2, 0
+	call	printf@plt
+	lui	a0, %hi(14)
+	addi	a0, a0, %lo(14)
+	lui	a1, %hi(15)
+	addi	a1, a1, %lo(15)
+	mv	a2, sp
+	addi	sp, a2, -16
+	li	a3, 17
+	sw	a3, -16(a2)
+	sw	a1, -12(a2)
+	call	printf@plt
+	mv	a0, sp
+	addi	s2, a0, -16
+	mv	sp, s2
+	lui	a1, %hi(16)
+	addi	a1, a1, %lo(16)
+	mv	a7, sp
+	addi	sp, a7, -16
+	sw	s1, -16(a7)
+	sw	a1, -12(a7)
+	lui	a1, %hi(17)
+	addi	a1, a1, %lo(17)
+	mv	a6, sp
+	addi	sp, a6, -16
+	sw	s1, -16(a6)
+	sw	a1, -12(a6)
+	lui	a1, %hi(18)
+	addi	a1, a1, %lo(18)
+	mv	a5, sp
+	addi	sp, a5, -16
+	sw	s1, -16(a5)
+	sw	a1, -12(a5)
+	lui	a1, %hi(19)
+	addi	a1, a1, %lo(19)
+	mv	a3, sp
+	addi	sp, a3, -16
+	li	a4, 4
+	sw	a4, -16(a3)
+	sw	a1, -12(a3)
+	lui	a1, %hi(20)
+	addi	a1, a1, %lo(20)
+	mv	a2, sp
+	addi	sp, a2, -16
+	sw	a4, -16(a2)
+	sw	a1, -12(a2)
+	mv	a1, sp
+	addi	sp, a1, -16
+	li	a4, 5
+	sw	a4, -16(a1)
+	mv	a4, sp
+	addi	t0, a4, -48
+	mv	sp, t0
+	sw	t0, -12(a1)
+	lb	t0, -9(a7)
+	lb	t1, -10(a7)
+	lb	t2, -11(a7)
+	lb	t3, -12(a7)
+	sb	t0, -41(a4)
+	sb	t1, -42(a4)
+	sb	t2, -43(a4)
+	sb	t3, -44(a4)
+	lb	t0, -13(a7)
+	lb	t1, -14(a7)
+	lb	t2, -15(a7)
+	lb	a7, -16(a7)
+	sb	t0, -45(a4)
+	sb	t1, -46(a4)
+	sb	t2, -47(a4)
+	sb	a7, -48(a4)
+	lb	a7, -16(a6)
+	lb	t0, -15(a6)
+	lb	t1, -14(a6)
+	lb	t2, -13(a6)
+	sb	a7, -40(a4)
+	sb	t0, -39(a4)
+	sb	t1, -38(a4)
+	sb	t2, -37(a4)
+	lb	a7, -12(a6)
+	lb	t0, -11(a6)
+	lb	t1, -10(a6)
+	lb	a6, -9(a6)
+	sb	a7, -36(a4)
+	sb	t0, -35(a4)
+	sb	t1, -34(a4)
+	sb	a6, -33(a4)
+	lb	a6, -16(a5)
+	lb	a7, -15(a5)
+	lb	t0, -14(a5)
+	lb	t1, -13(a5)
+	sb	a6, -32(a4)
+	sb	a7, -31(a4)
+	sb	t0, -30(a4)
+	sb	t1, -29(a4)
+	lb	a6, -12(a5)
+	lb	a7, -11(a5)
+	lb	t0, -10(a5)
+	lb	a5, -9(a5)
+	sb	a6, -28(a4)
+	sb	a7, -27(a4)
+	sb	t0, -26(a4)
+	sb	a5, -25(a4)
+	lb	a5, -16(a3)
+	lb	a6, -15(a3)
+	lb	a7, -14(a3)
+	lb	t0, -13(a3)
+	sb	a5, -24(a4)
+	sb	a6, -23(a4)
+	sb	a7, -22(a4)
+	sb	t0, -21(a4)
+	lb	a5, -12(a3)
+	lb	a6, -11(a3)
+	lb	a7, -9(a3)
+	lb	a3, -10(a3)
+	sb	a5, -20(a4)
+	sb	a6, -19(a4)
+	sb	a7, -17(a4)
+	sb	a3, -18(a4)
+	lb	a3, -16(a2)
+	lb	a5, -15(a2)
+	lb	a6, -14(a2)
+	lb	a7, -13(a2)
+	sb	a3, -16(a4)
+	sb	a5, -15(a4)
+	sb	a6, -14(a4)
+	sb	a7, -13(a4)
+	lb	a3, -12(a2)
+	lb	a5, -11(a2)
+	lb	a6, -10(a2)
+	lb	a2, -9(a2)
+	sb	a3, -12(a4)
+	sb	a5, -11(a4)
+	sb	a6, -10(a4)
+	sb	a2, -9(a4)
+	lb	a2, -9(a1)
+	lb	a3, -10(a1)
+	lb	a4, -11(a1)
+	lb	a5, -12(a1)
+	sb	a2, -9(a0)
+	sb	a3, -10(a0)
+	sb	a4, -11(a0)
+	sb	a5, -12(a0)
+	lb	a2, -13(a1)
+	lb	a3, -14(a1)
+	lb	a4, -15(a1)
+	lb	a1, -16(a1)
+	sb	a2, -13(a0)
+	sb	a3, -14(a0)
+	sb	a4, -15(a0)
+	sb	a1, -16(a0)
+	addi	s3, sp, -16
+	mv	sp, s3
+	mv	a0, sp
+	addi	s4, a0, -16
+	mv	sp, s4
+	sw	zero, -16(a0)
+	lui	a0, %hi(21)
+	addi	s1, a0, %lo(21)
+.LBB0_8:                                # %cond.2
+                                        # =>This Inner Loop Header: Depth=1
+	lw	s5, 0(s4)
+	lw	a0, 0(s2)
+	bge	s5, a0, .LBB0_10
+# %bb.9:                                # %for-body.1
+                                        #   in Loop: Header=BB0_8 Depth=1
+	lw	a0, 4(s2)
+	slli	a1, s5, 3
+	add	a0, a0, a1
+	lb	a1, 7(a0)
+	sb	a1, 7(s3)
+	lb	a1, 6(a0)
+	sb	a1, 6(s3)
+	lb	a1, 5(a0)
+	sb	a1, 5(s3)
+	lb	a1, 4(a0)
+	sb	a1, 4(s3)
+	lb	a1, 3(a0)
+	sb	a1, 3(s3)
+	lb	a1, 2(a0)
+	sb	a1, 2(s3)
+	lb	a1, 1(a0)
+	sb	a1, 1(s3)
+	lb	a0, 0(a0)
+	lw	a1, 4(s3)
+	sb	a0, 0(s3)
+	mv	a0, s1
+	call	printf@plt
+	addi	a0, s5, 1
+	sw	a0, 0(s4)
+	j	.LBB0_8
+.LBB0_10:                               # %orelse-body.1
+	addi	sp, s0, -64
+	lw	ra, 60(sp)                      # 4-byte Folded Reload
+	lw	s0, 56(sp)                      # 4-byte Folded Reload
+	lw	s1, 52(sp)                      # 4-byte Folded Reload
+	lw	s2, 48(sp)                      # 4-byte Folded Reload
+	lw	s3, 44(sp)                      # 4-byte Folded Reload
+	lw	s4, 40(sp)                      # 4-byte Folded Reload
+	lw	s5, 36(sp)                      # 4-byte Folded Reload
+	addi	sp, sp, 64
+	ret
+.Lfunc_end0:
+	.size	main, .Lfunc_end0-main
+	.cfi_endproc
+                                        # -- End function
+	.section	.sdata,"aw",@progbits
+	.p2align	3                               # -- Begin function medium.fibonacci
+.LCPI1_0:
+	.quad	0x3ff0000000000000              # double 1
+.LCPI1_1:
+	.quad	0xbff0000000000000              # double -1
+.LCPI1_2:
+	.quad	0xc000000000000000              # double -2
+	.text
+	.globl	medium.fibonacci
+	.p2align	2
+	.type	medium.fibonacci,@function
+medium.fibonacci:                       # @medium.fibonacci
+	.cfi_startproc
+# %bb.0:                                # %entry
+	addi	sp, sp, -32
+	.cfi_def_cfa_offset 32
+	sw	ra, 28(sp)                      # 4-byte Folded Spill
+	.cfi_offset ra, -4
+	sw	a0, 8(sp)
+	sw	a1, 12(sp)
+	fld	ft0, 8(sp)
+	lui	a0, %hi(.LCPI1_0)
+	fld	ft1, %lo(.LCPI1_0)(a0)
+	fle.d	a0, ft0, ft1
+	fsd	ft0, 16(sp)
+	beqz	a0, .LBB1_2
+# %bb.1:                                # %if-true
+	fld	ft0, 16(sp)
+	j	.LBB1_3
+.LBB1_2:                                # %or-else
+	fld	ft0, 16(sp)
+	lui	a0, %hi(.LCPI1_1)
+	fld	ft1, %lo(.LCPI1_1)(a0)
+	fadd.d	ft0, ft0, ft1
+	fsd	ft0, 8(sp)
+	lw	a0, 8(sp)
+	lw	a1, 12(sp)
+	call	medium.fibonacci@plt
+	sw	a0, 8(sp)
+	sw	a1, 12(sp)
+	fld	ft0, 16(sp)
+	lui	a0, %hi(.LCPI1_2)
+	fld	ft1, %lo(.LCPI1_2)(a0)
+	fld	ft2, 8(sp)
+	fsd	ft2, 0(sp)                      # 8-byte Folded Spill
+	fadd.d	ft0, ft0, ft1
+	fsd	ft0, 8(sp)
+	lw	a0, 8(sp)
+	lw	a1, 12(sp)
+	call	medium.fibonacci@plt
+	sw	a0, 8(sp)
+	sw	a1, 12(sp)
+	fld	ft0, 8(sp)
+	fld	ft1, 0(sp)                      # 8-byte Folded Reload
+	fadd.d	ft0, ft1, ft0
+.LBB1_3:                                # %if-true
+	fsd	ft0, 8(sp)
+	lw	a0, 8(sp)
+	lw	a1, 12(sp)
+	lw	ra, 28(sp)                      # 4-byte Folded Reload
+	addi	sp, sp, 32
+	ret
+.Lfunc_end1:
+	.size	medium.fibonacci, .Lfunc_end1-medium.fibonacci
+	.cfi_endproc
+                                        # -- End function
+	.section	.sdata,"aw",@progbits
+	.p2align	3                               # -- Begin function medium.modified_fibonacci
+.LCPI2_0:
+	.quad	0x3ff0000000000000              # double 1
+.LCPI2_1:
+	.quad	0xbff0000000000000              # double -1
+.LCPI2_2:
+	.quad	0xc000000000000000              # double -2
+.LCPI2_3:
+	.quad	0x3ff00068db8bac71              # double 1.0001
+.LCPI2_4:
+	.quad	0xbff000d1b71758e2              # double -1.0002
+.LCPI2_5:
+	.quad	0x3ff0013a92a30553              # double 1.0003
+.LCPI2_6:
+	.quad	0x3ff001a36e2eb1c4              # double 1.0004
+.LCPI2_7:
+	.quad	0x3ff0020c49ba5e35              # double 1.0004999999999999
+.LCPI2_8:
+	.quad	0x3ff0027525460aa6              # double 1.0005999999999999
+	.text
+	.globl	medium.modified_fibonacci
+	.p2align	2
+	.type	medium.modified_fibonacci,@function
+medium.modified_fibonacci:              # @medium.modified_fibonacci
+	.cfi_startproc
+# %bb.0:                                # %entry
+	addi	sp, sp, -32
+	.cfi_def_cfa_offset 32
+	sw	ra, 28(sp)                      # 4-byte Folded Spill
+	sw	s0, 24(sp)                      # 4-byte Folded Spill
+	sw	s1, 20(sp)                      # 4-byte Folded Spill
+	sw	s2, 16(sp)                      # 4-byte Folded Spill
+	.cfi_offset ra, -4
+	.cfi_offset s0, -8
+	.cfi_offset s1, -12
+	.cfi_offset s2, -16
+	addi	s0, sp, 32
+	.cfi_def_cfa s0, 0
+	sw	a0, -32(s0)
+	sw	a1, -28(s0)
+	fld	ft0, -32(s0)
+	lui	a0, %hi(.LCPI2_0)
+	fld	ft1, %lo(.LCPI2_0)(a0)
+	fle.d	a0, ft0, ft1
+	fsd	ft0, -24(s0)
+	beqz	a0, .LBB2_2
+# %bb.1:                                # %if-true
+	lui	a1, 261888
+	li	a0, 0
+	j	.LBB2_3
+.LBB2_2:                                # %or-else
+	mv	s1, sp
+	addi	sp, s1, -16
+	fld	ft0, -24(s0)
+	lui	a0, %hi(.LCPI2_1)
+	fld	ft1, %lo(.LCPI2_1)(a0)
+	fadd.d	ft0, ft0, ft1
+	fsd	ft0, -32(s0)
+	lw	a0, -32(s0)
+	lw	a1, -28(s0)
+	call	medium.modified_fibonacci@plt
+	sw	a0, -32(s0)
+	sw	a1, -28(s0)
+	fld	ft0, -32(s0)
+	fsd	ft0, -16(s1)
+	mv	s2, sp
+	addi	sp, s2, -16
+	fld	ft0, -24(s0)
+	lui	a0, %hi(.LCPI2_2)
+	fld	ft1, %lo(.LCPI2_2)(a0)
+	fadd.d	ft0, ft0, ft1
+	fsd	ft0, -32(s0)
+	lw	a0, -32(s0)
+	lw	a1, -28(s0)
+	call	medium.modified_fibonacci@plt
+	sw	a0, -32(s0)
+	sw	a1, -28(s0)
+	fld	ft0, -32(s0)
+	fsd	ft0, -16(s2)
+	mv	a0, sp
+	addi	sp, a0, -16
+	fld	ft0, -16(s1)
+	lui	a1, %hi(.LCPI2_3)
+	fld	ft1, %lo(.LCPI2_3)(a1)
+	fld	ft2, -16(s2)
+	lui	a1, %hi(.LCPI2_4)
+	fld	ft3, %lo(.LCPI2_4)(a1)
+	lui	a1, %hi(.LCPI2_5)
+	fld	ft4, %lo(.LCPI2_5)(a1)
+	fmul.d	ft0, ft0, ft1
+	fdiv.d	ft1, ft2, ft3
+	fadd.d	ft0, ft0, ft1
+	fmul.d	ft0, ft0, ft4
+	fsd	ft0, -16(a0)
+	mv	a1, sp
+	addi	sp, a1, -16
+	fld	ft0, -16(s2)
+	lui	a2, %hi(.LCPI2_6)
+	fld	ft1, %lo(.LCPI2_6)(a2)
+	fld	ft2, -16(s1)
+	lui	a2, %hi(.LCPI2_7)
+	fld	ft3, %lo(.LCPI2_7)(a2)
+	fmul.d	ft0, ft0, ft1
+	fdiv.d	ft1, ft2, ft3
+	lui	a2, %hi(.LCPI2_8)
+	fld	ft2, %lo(.LCPI2_8)(a2)
+	fld	ft3, -16(s1)
+	fld	ft4, -16(s2)
+	fadd.d	ft0, ft0, ft1
+	fld	ft1, -16(a0)
+	fmul.d	ft0, ft0, ft2
+	fadd.d	ft2, ft3, ft4
+	fsd	ft0, -16(a1)
+	fadd.d	ft1, ft2, ft1
+	fadd.d	ft0, ft1, ft0
+	fsd	ft0, -32(s0)
+	lw	a0, -32(s0)
+	lw	a1, -28(s0)
+.LBB2_3:                                # %if-true
+	addi	sp, s0, -32
+	lw	ra, 28(sp)                      # 4-byte Folded Reload
+	lw	s0, 24(sp)                      # 4-byte Folded Reload
+	lw	s1, 20(sp)                      # 4-byte Folded Reload
+	lw	s2, 16(sp)                      # 4-byte Folded Reload
+	addi	sp, sp, 32
+	ret
+.Lfunc_end2:
+	.size	medium.modified_fibonacci, .Lfunc_end2-medium.modified_fibonacci
+	.cfi_endproc
+                                        # -- End function
+	.type	0,@object                       # @"0"
+	.section	.rodata,"a",@progbits
+0:
+	.asciz	"%s\n"
+	.size	0, 4
+
+	.type	1,@object                       # @"1"
+	.p2align	4
+1:
+	.asciz	"1. Fibonacci Sequence"
+	.size	1, 22
+
+	.type	2,@object                       # @"2"
+2:
+	.asciz	"%f\n"
+	.size	2, 4
+
+	.type	3,@object                       # @"3"
+3:
+	.asciz	"%s\n"
+	.size	3, 4
+
+	.type	4,@object                       # @"4"
+	.p2align	4
+4:
+	.asciz	"2. Modified Fibonacci Sequence"
+	.size	4, 31
+
+	.type	5,@object                       # @"5"
+5:
+	.asciz	"%s\n"
+	.size	5, 4
+
+	.type	6,@object                       # @"6"
+	.p2align	4
+6:
+	.asciz	"Modified Fibonacci(15):"
+	.size	6, 24
+
+	.type	7,@object                       # @"7"
+7:
+	.asciz	"%f\n"
+	.size	7, 4
+
+	.type	8,@object                       # @"8"
+8:
+	.asciz	"%s\n"
+	.size	8, 4
+
+	.type	9,@object                       # @"9"
+	.p2align	4
+9:
+	.asciz	"3. More Arithmetics"
+	.size	9, 20
+
+	.type	10,@object                      # @"10"
+10:
+	.asciz	"%d\n"
+	.size	10, 4
+
+	.type	11,@object                      # @"11"
+11:
+	.asciz	"%f\n"
+	.size	11, 4
+
+	.type	12,@object                      # @"12"
+12:
+	.asciz	"%d\n"
+	.size	12, 4
+
+	.type	13,@object                      # @"13"
+13:
+	.asciz	"%f\n"
+	.size	13, 4
+
+	.type	14,@object                      # @"14"
+14:
+	.asciz	"%s\n"
+	.size	14, 4
+
+	.type	15,@object                      # @"15"
+	.p2align	4
+15:
+	.asciz	"4. List Iteration"
+	.size	15, 18
+
+	.type	16,@object                      # @"16"
+16:
+	.asciz	"foo"
+	.size	16, 4
+
+	.type	17,@object                      # @"17"
+17:
+	.asciz	"bar"
+	.size	17, 4
+
+	.type	18,@object                      # @"18"
+18:
+	.asciz	"str"
+	.size	18, 4
+
+	.type	19,@object                      # @"19"
+19:
+	.asciz	"test"
+	.size	19, 5
+
+	.type	20,@object                      # @"20"
+20:
+	.asciz	"halo"
+	.size	20, 5
+
+	.type	21,@object                      # @"21"
+21:
+	.asciz	"%s\n"
+	.size	21, 4
+
+	.section	".note.GNU-stack","",@progbits
+
+
+2. Optimzations : instcombine,sroa,loop-unroll,loop-vectorize,simplifycfg,gvn
+
+llvm ir :
+; ModuleID = '<string>'
+source_filename = "<string>"
+target datalayout = "e-m:e-i32:32-i16:16-i8:8-n32-S32"
+target triple = "riscv32-unknown-linux-gnu"
+
+%str = type { i32, i8* }
+%"list[int]" = type { i32, i32* }
+%"list[str]" = type { i32, %str* }
+
+@"0" = internal constant [4 x i8] c"%s\0A\00"
+@"1" = internal constant [22 x i8] c"1. Fibonacci Sequence\00"
+@"2" = internal constant [4 x i8] c"%f\0A\00"
+@"3" = internal constant [4 x i8] c"%s\0A\00"
+@"4" = internal constant [31 x i8] c"2. Modified Fibonacci Sequence\00"
+@"5" = internal constant [4 x i8] c"%s\0A\00"
+@"6" = internal constant [24 x i8] c"Modified Fibonacci(15):\00"
+@"7" = internal constant [4 x i8] c"%f\0A\00"
+@"8" = internal constant [4 x i8] c"%s\0A\00"
+@"9" = internal constant [20 x i8] c"3. More Arithmetics\00"
+@"10" = internal constant [4 x i8] c"%d\0A\00"
+@"11" = internal constant [4 x i8] c"%f\0A\00"
+@"12" = internal constant [4 x i8] c"%d\0A\00"
+@"13" = internal constant [4 x i8] c"%f\0A\00"
+@"14" = internal constant [4 x i8] c"%s\0A\00"
+@"15" = internal constant [18 x i8] c"4. List Iteration\00"
+@"16" = internal constant [4 x i8] c"foo\00"
+@"17" = internal constant [4 x i8] c"bar\00"
+@"18" = internal constant [4 x i8] c"str\00"
+@"19" = internal constant [5 x i8] c"test\00"
+@"20" = internal constant [5 x i8] c"halo\00"
+@"21" = internal constant [4 x i8] c"%s\0A\00"
+
+define void @main() {
+entry:
+  %.2 = getelementptr [4 x i8], [4 x i8]* @"0", i32 0, i32 0
+  %.3 = getelementptr [22 x i8], [22 x i8]* @"1", i32 0, i32 0
+  %.4 = alloca %str, align 8
+  %.5 = getelementptr %str, %str* %.4, i32 0, i32 0
+  %.6 = getelementptr %str, %str* %.4, i32 0, i32 1
+  store i32 21, i32* %.5, align 4
+  store i8* %.3, i8** %.6, align 8
+  %.9 = getelementptr %str, %str* %.4, i32 0, i32 1
+  %.10 = load i8*, i8** %.9, align 8
+  %print = call i32 (i8*, ...) @printf(i8* %.2, i8* %.10)
+  %.11 = alloca i32, align 4
+  store i32 20, i32* %.11, align 4
+  %.13 = alloca i32, align 4
+  %.14 = load i32, i32* %.11, align 4
+  %.15 = alloca i32, i32 %.14, align 4
+  %.16 = alloca i32, align 4
+  store i32 0, i32* %.16, align 4
+  br label %cond
+
+cond:                                             ; preds = %range-body, %entry
+  %.19 = load i32, i32* %.16, align 4
+  %.20 = icmp slt i32 %.19, %.14
+  br i1 %.20, label %range-body, label %after
+
+range-body:                                       ; preds = %cond
+  %.22 = getelementptr i32, i32* %.15, i32 %.19
+  store i32 %.19, i32* %.22, align 4
+  %.24 = add i32 %.19, 1
+  store i32 %.24, i32* %.16, align 4
+  br label %cond
+
+after:                                            ; preds = %cond
+  %.27 = alloca %"list[int]", align 8
+  %.28 = getelementptr %"list[int]", %"list[int]"* %.27, i32 0, i32 0
+  %.29 = getelementptr %"list[int]", %"list[int]"* %.27, i32 0, i32 1
+  store i32 %.14, i32* %.28, align 4
+  store i32* %.15, i32** %.29, align 8
+  %.32 = alloca i32, align 4
+  store i32 0, i32* %.32, align 4
+  br label %cond.1
+
+cond.1:                                           ; preds = %after.1, %after
+  %.35 = load i32, i32* %.32, align 4
+  %.36 = getelementptr %"list[int]", %"list[int]"* %.27, i32 0, i32 0
+  %.37 = load i32, i32* %.36, align 4
+  %.38 = icmp slt i32 %.35, %.37
+  br i1 %.38, label %for-body, label %orelse-body
+
+for-body:                                         ; preds = %cond.1
+  %.40 = getelementptr %"list[int]", %"list[int]"* %.27, i32 0, i32 1
+  %.41 = load i32*, i32** %.40, align 8
+  %.42 = getelementptr i32, i32* %.41, i32 %.35
+  %.43 = load i32, i32* %.42, align 4
+  store i32 %.43, i32* %.13, align 4
+  %.45 = load i32, i32* %.13, align 4
+  %.46 = icmp ne i32 %.45, 0
+  br i1 %.46, label %if-true, label %or-else
+
+orelse-body:                                      ; preds = %cond.1
+  br label %after-for
+
+after-for:                                        ; preds = %orelse-body
+  %.58 = getelementptr [4 x i8], [4 x i8]* @"3", i32 0, i32 0
+  %.59 = getelementptr [31 x i8], [31 x i8]* @"4", i32 0, i32 0
+  %.60 = alloca %str, align 8
+  %.61 = getelementptr %str, %str* %.60, i32 0, i32 0
+  %.62 = getelementptr %str, %str* %.60, i32 0, i32 1
+  store i32 30, i32* %.61, align 4
+  store i8* %.59, i8** %.62, align 8
+  %.65 = getelementptr %str, %str* %.60, i32 0, i32 1
+  %.66 = load i8*, i8** %.65, align 8
+  %print.2 = call i32 (i8*, ...) @printf(i8* %.58, i8* %.66)
+  %.67 = getelementptr [4 x i8], [4 x i8]* @"5", i32 0, i32 0
+  %.68 = getelementptr [24 x i8], [24 x i8]* @"6", i32 0, i32 0
+  %.69 = alloca %str, align 8
+  %.70 = getelementptr %str, %str* %.69, i32 0, i32 0
+  %.71 = getelementptr %str, %str* %.69, i32 0, i32 1
+  store i32 23, i32* %.70, align 4
+  store i8* %.68, i8** %.71, align 8
+  %.74 = getelementptr %str, %str* %.69, i32 0, i32 1
+  %.75 = load i8*, i8** %.74, align 8
+  %print.3 = call i32 (i8*, ...) @printf(i8* %.67, i8* %.75)
+  %.76 = getelementptr [4 x i8], [4 x i8]* @"7", i32 0, i32 0
+  %.77 = call double @medium.modified_fibonacci(double 1.500000e+01)
+  %print.4 = call i32 (i8*, ...) @printf(i8* %.76, double %.77)
+  %.78 = getelementptr [4 x i8], [4 x i8]* @"8", i32 0, i32 0
+  %.79 = getelementptr [20 x i8], [20 x i8]* @"9", i32 0, i32 0
+  %.80 = alloca %str, align 8
+  %.81 = getelementptr %str, %str* %.80, i32 0, i32 0
+  %.82 = getelementptr %str, %str* %.80, i32 0, i32 1
+  store i32 19, i32* %.81, align 4
+  store i8* %.79, i8** %.82, align 8
+  %.85 = getelementptr %str, %str* %.80, i32 0, i32 1
+  %.86 = load i8*, i8** %.85, align 8
+  %print.5 = call i32 (i8*, ...) @printf(i8* %.78, i8* %.86)
+  %.87 = alloca i32, align 4
+  store i32 3, i32* %.87, align 4
+  %.89 = alloca i32, align 4
+  store i32 2, i32* %.89, align 4
+  %.91 = alloca i32, align 4
+  %.92 = load i32, i32* %.87, align 4
+  %.93 = load i32, i32* %.89, align 4
+  %.94 = sdiv i32 %.92, %.93
+  store i32 %.94, i32* %.91, align 4
+  %.96 = getelementptr [4 x i8], [4 x i8]* @"10", i32 0, i32 0
+  %.97 = load i32, i32* %.91, align 4
+  %print.6 = call i32 (i8*, ...) @printf(i8* %.96, i32 %.97)
+  %.98 = alloca double, align 8
+  %.99 = load i32, i32* %.87, align 4
+  %.100 = sitofp i32 %.99 to double
+  %.101 = load i32, i32* %.89, align 4
+  %.102 = sitofp i32 %.101 to double
+  %.103 = fdiv double %.100, %.102
+  store double %.103, double* %.98, align 8
+  %.105 = getelementptr [4 x i8], [4 x i8]* @"11", i32 0, i32 0
+  %.106 = load double, double* %.98, align 8
+  %print.7 = call i32 (i8*, ...) @printf(i8* %.105, double %.106)
+  %.107 = alloca i32, align 4
+  %.108 = mul i32 5, 2
+  %.109 = add i32 3, %.108
+  %.110 = sdiv i32 8, 4
+  %.111 = sub i32 %.109, %.110
+  store i32 %.111, i32* %.107, align 4
+  %.113 = getelementptr [4 x i8], [4 x i8]* @"12", i32 0, i32 0
+  %.114 = load i32, i32* %.107, align 4
+  %print.8 = call i32 (i8*, ...) @printf(i8* %.113, i32 %.114)
+  %.115 = alloca double, align 8
+  %.116 = sitofp i32 3 to double
+  %.117 = sitofp i32 5 to double
+  %.118 = sitofp i32 2 to double
+  %.119 = fmul double %.117, %.118
+  %.120 = fadd double %.116, %.119
+  %.121 = sitofp i32 8 to double
+  %.122 = sitofp i32 4 to double
+  %.123 = fdiv double %.121, %.122
+  %.124 = fsub double %.120, %.123
+  store double %.124, double* %.115, align 8
+  %.126 = getelementptr [4 x i8], [4 x i8]* @"13", i32 0, i32 0
+  %.127 = load double, double* %.115, align 8
+  %print.9 = call i32 (i8*, ...) @printf(i8* %.126, double %.127)
+  %.128 = getelementptr [4 x i8], [4 x i8]* @"14", i32 0, i32 0
+  %.129 = getelementptr [18 x i8], [18 x i8]* @"15", i32 0, i32 0
+  %.130 = alloca %str, align 8
+  %.131 = getelementptr %str, %str* %.130, i32 0, i32 0
+  %.132 = getelementptr %str, %str* %.130, i32 0, i32 1
+  store i32 17, i32* %.131, align 4
+  store i8* %.129, i8** %.132, align 8
+  %.135 = getelementptr %str, %str* %.130, i32 0, i32 1
+  %.136 = load i8*, i8** %.135, align 8
+  %print.10 = call i32 (i8*, ...) @printf(i8* %.128, i8* %.136)
+  %.137 = alloca %"list[str]", align 8
+  %.138 = getelementptr [4 x i8], [4 x i8]* @"16", i32 0, i32 0
+  %.139 = alloca %str, align 8
+  %.140 = getelementptr %str, %str* %.139, i32 0, i32 0
+  %.141 = getelementptr %str, %str* %.139, i32 0, i32 1
+  store i32 3, i32* %.140, align 4
+  store i8* %.138, i8** %.141, align 8
+  %.144 = getelementptr [4 x i8], [4 x i8]* @"17", i32 0, i32 0
+  %.145 = alloca %str, align 8
+  %.146 = getelementptr %str, %str* %.145, i32 0, i32 0
+  %.147 = getelementptr %str, %str* %.145, i32 0, i32 1
+  store i32 3, i32* %.146, align 4
+  store i8* %.144, i8** %.147, align 8
+  %.150 = getelementptr [4 x i8], [4 x i8]* @"18", i32 0, i32 0
+  %.151 = alloca %str, align 8
+  %.152 = getelementptr %str, %str* %.151, i32 0, i32 0
+  %.153 = getelementptr %str, %str* %.151, i32 0, i32 1
+  store i32 3, i32* %.152, align 4
+  store i8* %.150, i8** %.153, align 8
+  %.156 = getelementptr [5 x i8], [5 x i8]* @"19", i32 0, i32 0
+  %.157 = alloca %str, align 8
+  %.158 = getelementptr %str, %str* %.157, i32 0, i32 0
+  %.159 = getelementptr %str, %str* %.157, i32 0, i32 1
+  store i32 4, i32* %.158, align 4
+  store i8* %.156, i8** %.159, align 8
+  %.162 = getelementptr [5 x i8], [5 x i8]* @"20", i32 0, i32 0
+  %.163 = alloca %str, align 8
+  %.164 = getelementptr %str, %str* %.163, i32 0, i32 0
+  %.165 = getelementptr %str, %str* %.163, i32 0, i32 1
+  store i32 4, i32* %.164, align 4
+  store i8* %.162, i8** %.165, align 8
+  %.168 = alloca %"list[str]", align 8
+  %.169 = getelementptr %"list[str]", %"list[str]"* %.168, i32 0, i32 0
+  store i32 5, i32* %.169, align 4
+  %.171 = alloca %str, i32 5, align 8
+  %.172 = getelementptr %"list[str]", %"list[str]"* %.168, i32 0, i32 1
+  store %str* %.171, %str** %.172, align 8
+  %.174 = getelementptr %str, %str* %.171, i32 0
+  %.175 = bitcast %str* %.174 to i8*
+  %.176 = bitcast %str* %.139 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.175, i8* %.176, i32 8, i1 false)
+  %.178 = getelementptr %str, %str* %.171, i32 1
+  %.179 = bitcast %str* %.178 to i8*
+  %.180 = bitcast %str* %.145 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.179, i8* %.180, i32 8, i1 false)
+  %.182 = getelementptr %str, %str* %.171, i32 2
+  %.183 = bitcast %str* %.182 to i8*
+  %.184 = bitcast %str* %.151 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.183, i8* %.184, i32 8, i1 false)
+  %.186 = getelementptr %str, %str* %.171, i32 3
+  %.187 = bitcast %str* %.186 to i8*
+  %.188 = bitcast %str* %.157 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.187, i8* %.188, i32 8, i1 false)
+  %.190 = getelementptr %str, %str* %.171, i32 4
+  %.191 = bitcast %str* %.190 to i8*
+  %.192 = bitcast %str* %.163 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.191, i8* %.192, i32 8, i1 false)
+  %.194 = bitcast %"list[str]"* %.137 to i8*
+  %.195 = bitcast %"list[str]"* %.168 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.194, i8* %.195, i32 8, i1 false)
+  %.197 = alloca %str, align 8
+  %.198 = alloca i32, align 4
+  store i32 0, i32* %.198, align 4
+  br label %cond.2
+
+if-true:                                          ; preds = %for-body
+  %.48 = getelementptr [4 x i8], [4 x i8]* @"2", i32 0, i32 0
+  %.49 = load i32, i32* %.13, align 4
+  %.50 = sitofp i32 %.49 to double
+  %.51 = call double @medium.fibonacci(double %.50)
+  %print.1 = call i32 (i8*, ...) @printf(i8* %.48, double %.51)
+  br label %after.1
+
+or-else:                                          ; preds = %for-body
+  br label %after.1
+
+after.1:                                          ; preds = %or-else, %if-true
+  %.54 = add i32 %.35, 1
+  store i32 %.54, i32* %.32, align 4
+  br label %cond.1
+
+cond.2:                                           ; preds = %for-body.1, %after-for
+  %.201 = load i32, i32* %.198, align 4
+  %.202 = getelementptr %"list[str]", %"list[str]"* %.137, i32 0, i32 0
+  %.203 = load i32, i32* %.202, align 4
+  %.204 = icmp slt i32 %.201, %.203
+  br i1 %.204, label %for-body.1, label %orelse-body.1
+
+for-body.1:                                       ; preds = %cond.2
+  %.206 = getelementptr %"list[str]", %"list[str]"* %.137, i32 0, i32 1
+  %.207 = load %str*, %str** %.206, align 8
+  %.208 = getelementptr %str, %str* %.207, i32 %.201
+  %.209 = bitcast %str* %.197 to i8*
+  %.210 = bitcast %str* %.208 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.209, i8* %.210, i32 8, i1 false)
+  %.212 = getelementptr [4 x i8], [4 x i8]* @"21", i32 0, i32 0
+  %.213 = getelementptr %str, %str* %.197, i32 0, i32 1
+  %.214 = load i8*, i8** %.213, align 8
+  %print.11 = call i32 (i8*, ...) @printf(i8* %.212, i8* %.214)
+  %.215 = add i32 %.201, 1
+  store i32 %.215, i32* %.198, align 4
+  br label %cond.2
+
+orelse-body.1:                                    ; preds = %cond.2
+  br label %after-for.1
+
+after-for.1:                                      ; preds = %orelse-body.1
+  ret void
+}
+
+declare i32 @printf(i8*, ...)
+
+declare i8* @readline(i8*, ...)
+
+declare i32 @strlen(i8*, ...)
+
+declare i16 @memcmp(i8*, i8*, i32)
+
+define double @medium.fibonacci(double %.1) {
+entry:
+  %.3 = alloca double, align 8
+  store double %.1, double* %.3, align 8
+  %.5 = load double, double* %.3, align 8
+  %.6 = fcmp ole double %.5, 1.000000e+00
+  br i1 %.6, label %if-true, label %or-else
+
+if-true:                                          ; preds = %entry
+  %.8 = load double, double* %.3, align 8
+  ret double %.8
+
+or-else:                                          ; preds = %entry
+  %.10 = load double, double* %.3, align 8
+  %.11 = fsub double %.10, 1.000000e+00
+  %.12 = call double @medium.fibonacci(double %.11)
+  %.13 = load double, double* %.3, align 8
+  %.14 = fsub double %.13, 2.000000e+00
+  %.15 = call double @medium.fibonacci(double %.14)
+  %.16 = fadd double %.12, %.15
+  ret double %.16
+
+after:                                            ; No predecessors!
+  %.18 = alloca double, align 8
+  %.19 = load double, double* %.18, align 8
+  ret double %.19
+}
+
+define double @medium.modified_fibonacci(double %.1) {
+entry:
+  %.3 = alloca double, align 8
+  store double %.1, double* %.3, align 8
+  %.5 = load double, double* %.3, align 8
+  %.6 = fcmp ole double %.5, 1.000000e+00
+  br i1 %.6, label %if-true, label %or-else
+
+if-true:                                          ; preds = %entry
+  ret double 1.000000e+00
+
+or-else:                                          ; preds = %entry
+  br label %after
+
+after:                                            ; preds = %or-else
+  %.10 = alloca double, align 8
+  %.11 = load double, double* %.3, align 8
+  %.12 = fsub double %.11, 1.000000e+00
+  %.13 = call double @medium.modified_fibonacci(double %.12)
+  store double %.13, double* %.10, align 8
+  %.15 = alloca double, align 8
+  %.16 = load double, double* %.3, align 8
+  %.17 = fsub double %.16, 2.000000e+00
+  %.18 = call double @medium.modified_fibonacci(double %.17)
+  store double %.18, double* %.15, align 8
+  %.20 = alloca double, align 8
+  %.21 = load double, double* %.10, align 8
+  %.22 = fmul double %.21, 1.000100e+00
+  %.23 = load double, double* %.15, align 8
+  %.24 = fdiv double %.23, 1.000200e+00
+  %.25 = fsub double %.22, %.24
+  %.26 = fmul double %.25, 1.000300e+00
+  store double %.26, double* %.20, align 8
+  %.28 = alloca double, align 8
+  %.29 = load double, double* %.15, align 8
+  %.30 = fmul double %.29, 1.000400e+00
+  %.31 = load double, double* %.10, align 8
+  %.32 = fdiv double %.31, 1.000500e+00
+  %.33 = fadd double %.30, %.32
+  %.34 = fmul double %.33, 1.000600e+00
+  store double %.34, double* %.28, align 8
+  %.36 = load double, double* %.10, align 8
+  %.37 = load double, double* %.15, align 8
+  %.38 = fadd double %.36, %.37
+  %.39 = load double, double* %.20, align 8
+  %.40 = fadd double %.38, %.39
+  %.41 = load double, double* %.28, align 8
+  %.42 = fadd double %.40, %.41
+  ret double %.42
+}
+
+; Function Attrs: argmemonly nofree nounwind willreturn
+declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+
+attributes #0 = { argmemonly nofree nounwind willreturn }
+
+assembly
+	.text
+	.attribute	4, 16
+	.attribute	5, "rv32i2p0_m2p0_a2p0_f2p0_d2p0"
+	.file	"<string>"
+	.globl	main                            # -- Begin function main
+	.p2align	2
+	.type	main,@function
+main:                                   # @main
+	.cfi_startproc
+# %bb.0:                                # %entry
+	addi	sp, sp, -128
+	.cfi_def_cfa_offset 128
+	sw	ra, 124(sp)                     # 4-byte Folded Spill
+	sw	s0, 120(sp)                     # 4-byte Folded Spill
+	sw	s1, 116(sp)                     # 4-byte Folded Spill
+	sw	s2, 112(sp)                     # 4-byte Folded Spill
+	sw	s3, 108(sp)                     # 4-byte Folded Spill
+	sw	s4, 104(sp)                     # 4-byte Folded Spill
+	.cfi_offset ra, -4
+	.cfi_offset s0, -8
+	.cfi_offset s1, -12
+	.cfi_offset s2, -16
+	.cfi_offset s3, -20
+	.cfi_offset s4, -24
+	addi	s0, sp, 128
+	.cfi_def_cfa s0, 0
+	lui	a0, %hi(1)
+	addi	a0, a0, %lo(1)
+	call	puts@plt
+	li	s2, 0
+	sw	zero, -104(s0)
+	li	a0, 1
+	sw	a0, -100(s0)
+	li	a0, 2
+	sw	a0, -96(s0)
+	li	a0, 3
+	sw	a0, -92(s0)
+	li	a0, 4
+	sw	a0, -88(s0)
+	li	a0, 5
+	sw	a0, -84(s0)
+	li	a0, 6
+	sw	a0, -80(s0)
+	li	a0, 7
+	sw	a0, -76(s0)
+	li	a0, 8
+	sw	a0, -72(s0)
+	li	a0, 9
+	sw	a0, -68(s0)
+	li	a0, 10
+	sw	a0, -64(s0)
+	li	a0, 11
+	sw	a0, -60(s0)
+	li	a0, 12
+	sw	a0, -56(s0)
+	li	a0, 13
+	sw	a0, -52(s0)
+	li	a0, 14
+	sw	a0, -48(s0)
+	li	a0, 15
+	sw	a0, -44(s0)
+	li	a0, 16
+	sw	a0, -40(s0)
+	li	a0, 17
+	sw	a0, -36(s0)
+	li	a0, 18
+	sw	a0, -32(s0)
+	li	s3, 19
+	sw	s3, -28(s0)
+	li	a0, 20
+	sw	a0, -112(s0)
+	addi	s4, s0, -104
+	sw	s4, -108(s0)
+	lui	a0, %hi(2)
+	addi	s1, a0, %lo(2)
+	j	.LBB0_2
+.LBB0_1:                                # %after.1
+                                        #   in Loop: Header=BB0_2 Depth=1
+	addi	s2, s2, 1
+.LBB0_2:                                # %cond.1
+                                        # =>This Inner Loop Header: Depth=1
+	blt	s3, s2, .LBB0_5
+# %bb.3:                                # %for-body
+                                        #   in Loop: Header=BB0_2 Depth=1
+	slli	a0, s2, 2
+	add	a0, s4, a0
+	lw	a0, 0(a0)
+	beqz	a0, .LBB0_1
+# %bb.4:                                # %if-true
+                                        #   in Loop: Header=BB0_2 Depth=1
+	fcvt.d.w	ft0, a0
+	fsd	ft0, -120(s0)
+	lw	a0, -120(s0)
+	lw	a1, -116(s0)
+	call	medium.fibonacci@plt
+	mv	a2, a0
+	mv	a0, s1
+	mv	a3, a1
+	call	printf@plt
+	j	.LBB0_1
+.LBB0_5:                                # %after-for
+	lui	a0, %hi(4)
+	addi	a0, a0, %lo(4)
+	call	puts@plt
+	lui	a0, %hi(6)
+	addi	a0, a0, %lo(6)
+	call	puts@plt
+	lui	a1, 262880
+	li	a0, 0
+	call	medium.modified_fibonacci@plt
+	mv	a2, a0
+	lui	a0, %hi(7)
+	addi	a0, a0, %lo(7)
+	mv	a3, a1
+	call	printf@plt
+	lui	a0, %hi(9)
+	addi	a0, a0, %lo(9)
+	call	puts@plt
+	lui	a0, %hi(10)
+	addi	a0, a0, %lo(10)
+	li	a1, 1
+	call	printf@plt
+	lui	a0, %hi(11)
+	addi	a0, a0, %lo(11)
+	lui	a3, 262016
+	li	a2, 0
+	call	printf@plt
+	lui	a0, %hi(12)
+	addi	a0, a0, %lo(12)
+	li	a1, 11
+	call	printf@plt
+	lui	a0, %hi(13)
+	addi	a0, a0, %lo(13)
+	lui	a3, 262752
+	li	a2, 0
+	call	printf@plt
+	lui	a0, %hi(15)
+	addi	a0, a0, %lo(15)
+	call	puts@plt
+	mv	a0, sp
+	addi	sp, a0, -16
+	mv	a1, sp
+	addi	sp, a1, -16
+	li	a2, 3
+	sw	a2, -16(a1)
+	lui	a3, %hi(16)
+	addi	a3, a3, %lo(16)
+	sw	a3, -12(a1)
+	mv	a3, sp
+	addi	sp, a3, -16
+	sw	a2, -16(a3)
+	lui	a4, %hi(17)
+	addi	a4, a4, %lo(17)
+	sw	a4, -12(a3)
+	mv	a4, sp
+	addi	sp, a4, -16
+	sw	a2, -16(a4)
+	lui	a2, %hi(18)
+	addi	a2, a2, %lo(18)
+	sw	a2, -12(a4)
+	mv	a2, sp
+	addi	sp, a2, -16
+	li	a5, 4
+	sw	a5, -16(a2)
+	lui	a6, %hi(19)
+	addi	a6, a6, %lo(19)
+	sw	a6, -12(a2)
+	mv	a6, sp
+	addi	sp, a6, -16
+	sw	a5, -16(a6)
+	lui	a5, %hi(20)
+	addi	a5, a5, %lo(20)
+	sw	a5, -12(a6)
+	mv	a5, sp
+	addi	sp, a5, -16
+	li	a7, 5
+	sw	a7, -16(a5)
+	mv	a7, sp
+	addi	t0, a7, -48
+	mv	sp, t0
+	sw	t0, -12(a5)
+	lw	t0, -12(a1)
+	lw	a1, -16(a1)
+	lw	t1, -16(a3)
+	lw	a3, -12(a3)
+	sw	t0, -44(a7)
+	sw	a1, -48(a7)
+	sw	t1, -40(a7)
+	sw	a3, -36(a7)
+	lw	a1, -12(a4)
+	lw	a3, -16(a4)
+	lw	a4, -16(a2)
+	lw	a2, -12(a2)
+	sw	a1, -28(a7)
+	sw	a3, -32(a7)
+	sw	a4, -24(a7)
+	sw	a2, -20(a7)
+	lw	a1, -12(a6)
+	lw	a2, -16(a6)
+	lw	a3, -12(a5)
+	lw	s1, -16(a5)
+	sw	a1, -12(a7)
+	sw	a2, -16(a7)
+	sw	a3, -12(a0)
+	sw	s1, -16(a0)
+	addi	s2, sp, -16
+	mv	sp, s2
+	li	s3, 0
+	bge	s3, s1, .LBB0_7
+.LBB0_6:                                # %for-body.1
+                                        # =>This Inner Loop Header: Depth=1
+	lbu	a0, 0(a0)
+	slli	a1, a0, 8
+	or	a0, a1, a0
+	slli	a1, a0, 16
+	or	a0, a1, a0
+	sw	a0, 4(s2)
+	sw	a0, 0(s2)
+	call	puts@plt
+	addi	s3, s3, 1
+	blt	s3, s1, .LBB0_6
+.LBB0_7:                                # %after-for.1
+	addi	sp, s0, -128
+	lw	ra, 124(sp)                     # 4-byte Folded Reload
+	lw	s0, 120(sp)                     # 4-byte Folded Reload
+	lw	s1, 116(sp)                     # 4-byte Folded Reload
+	lw	s2, 112(sp)                     # 4-byte Folded Reload
+	lw	s3, 108(sp)                     # 4-byte Folded Reload
+	lw	s4, 104(sp)                     # 4-byte Folded Reload
+	addi	sp, sp, 128
+	ret
+.Lfunc_end0:
+	.size	main, .Lfunc_end0-main
+	.cfi_endproc
+                                        # -- End function
+	.section	.sdata,"aw",@progbits
+	.p2align	3                               # -- Begin function medium.fibonacci
+.LCPI1_0:
+	.quad	0x3ff0000000000000              # double 1
+.LCPI1_1:
+	.quad	0xbff0000000000000              # double -1
+.LCPI1_2:
+	.quad	0xc000000000000000              # double -2
+	.text
+	.globl	medium.fibonacci
+	.p2align	2
+	.type	medium.fibonacci,@function
+medium.fibonacci:                       # @medium.fibonacci
+	.cfi_startproc
+# %bb.0:                                # %entry
+	addi	sp, sp, -32
+	.cfi_def_cfa_offset 32
+	sw	ra, 28(sp)                      # 4-byte Folded Spill
+	.cfi_offset ra, -4
+	sw	a0, 16(sp)
+	sw	a1, 20(sp)
+	fld	ft1, 16(sp)
+	lui	a0, %hi(.LCPI1_0)
+	fld	ft0, %lo(.LCPI1_0)(a0)
+	fle.d	a0, ft1, ft0
+	bnez	a0, .LBB1_2
+# %bb.1:                                # %or-else
+	lui	a0, %hi(.LCPI1_1)
+	fld	ft0, %lo(.LCPI1_1)(a0)
+	fadd.d	ft0, ft1, ft0
+	fsd	ft0, 16(sp)
+	lw	a0, 16(sp)
+	lw	a1, 20(sp)
+	fsd	ft1, 0(sp)                      # 8-byte Folded Spill
+	call	medium.fibonacci@plt
+	lui	a2, %hi(.LCPI1_2)
+	fld	ft0, %lo(.LCPI1_2)(a2)
+	sw	a0, 16(sp)
+	sw	a1, 20(sp)
+	fld	ft1, 16(sp)
+	fsd	ft1, 8(sp)                      # 8-byte Folded Spill
+	fld	ft1, 0(sp)                      # 8-byte Folded Reload
+	fadd.d	ft0, ft1, ft0
+	fsd	ft0, 16(sp)
+	lw	a0, 16(sp)
+	lw	a1, 20(sp)
+	call	medium.fibonacci@plt
+	sw	a0, 16(sp)
+	sw	a1, 20(sp)
+	fld	ft0, 16(sp)
+	fld	ft1, 8(sp)                      # 8-byte Folded Reload
+	fadd.d	ft1, ft1, ft0
+.LBB1_2:                                # %common.ret
+	fsd	ft1, 16(sp)
+	lw	a0, 16(sp)
+	lw	a1, 20(sp)
+	lw	ra, 28(sp)                      # 4-byte Folded Reload
+	addi	sp, sp, 32
+	ret
+.Lfunc_end1:
+	.size	medium.fibonacci, .Lfunc_end1-medium.fibonacci
+	.cfi_endproc
+                                        # -- End function
+	.section	.sdata,"aw",@progbits
+	.p2align	3                               # -- Begin function medium.modified_fibonacci
+.LCPI2_0:
+	.quad	0x3ff0000000000000              # double 1
+.LCPI2_1:
+	.quad	0xbff0000000000000              # double -1
+.LCPI2_2:
+	.quad	0xc000000000000000              # double -2
+.LCPI2_3:
+	.quad	0x3ff00068db8bac71              # double 1.0001
+.LCPI2_4:
+	.quad	0xbff000d1b71758e2              # double -1.0002
+.LCPI2_5:
+	.quad	0x3ff0013a92a30553              # double 1.0003
+.LCPI2_6:
+	.quad	0x3ff001a36e2eb1c4              # double 1.0004
+.LCPI2_7:
+	.quad	0x3ff0020c49ba5e35              # double 1.0004999999999999
+.LCPI2_8:
+	.quad	0x3ff0027525460aa6              # double 1.0005999999999999
+	.text
+	.globl	medium.modified_fibonacci
+	.p2align	2
+	.type	medium.modified_fibonacci,@function
+medium.modified_fibonacci:              # @medium.modified_fibonacci
+	.cfi_startproc
+# %bb.0:                                # %entry
+	addi	sp, sp, -48
+	.cfi_def_cfa_offset 48
+	sw	ra, 44(sp)                      # 4-byte Folded Spill
+	sw	s0, 40(sp)                      # 4-byte Folded Spill
+	sw	s1, 36(sp)                      # 4-byte Folded Spill
+	.cfi_offset ra, -4
+	.cfi_offset s0, -8
+	.cfi_offset s1, -12
+	addi	s0, sp, 48
+	.cfi_def_cfa s0, 0
+	sw	a0, -24(s0)
+	sw	a1, -20(s0)
+	fld	ft1, -24(s0)
+	lui	a0, %hi(.LCPI2_0)
+	fld	ft0, %lo(.LCPI2_0)(a0)
+	fle.d	a0, ft1, ft0
+	bnez	a0, .LBB2_2
+# %bb.1:                                # %after
+	mv	s1, sp
+	addi	sp, s1, -16
+	lui	a0, %hi(.LCPI2_1)
+	fld	ft0, %lo(.LCPI2_1)(a0)
+	fadd.d	ft0, ft1, ft0
+	fsd	ft0, -24(s0)
+	lw	a0, -24(s0)
+	lw	a1, -20(s0)
+	fsd	ft1, -40(s0)                    # 8-byte Folded Spill
+	call	medium.modified_fibonacci@plt
+	sw	a0, -24(s0)
+	sw	a1, -20(s0)
+	fld	ft0, -24(s0)
+	fsd	ft0, -32(s0)                    # 8-byte Folded Spill
+	fsd	ft0, -16(s1)
+	mv	s1, sp
+	addi	sp, s1, -16
+	lui	a0, %hi(.LCPI2_2)
+	fld	ft0, %lo(.LCPI2_2)(a0)
+	fld	ft1, -40(s0)                    # 8-byte Folded Reload
+	fadd.d	ft0, ft1, ft0
+	fsd	ft0, -24(s0)
+	lw	a0, -24(s0)
+	lw	a1, -20(s0)
+	call	medium.modified_fibonacci@plt
+	sw	a0, -24(s0)
+	sw	a1, -20(s0)
+	fld	ft0, -24(s0)
+	fsd	ft0, -16(s1)
+	mv	a0, sp
+	addi	sp, a0, -16
+	lui	a1, %hi(.LCPI2_3)
+	fld	ft1, %lo(.LCPI2_3)(a1)
+	lui	a1, %hi(.LCPI2_4)
+	fld	ft2, %lo(.LCPI2_4)(a1)
+	fld	ft5, -32(s0)                    # 8-byte Folded Reload
+	fmul.d	ft1, ft5, ft1
+	fdiv.d	ft2, ft0, ft2
+	lui	a1, %hi(.LCPI2_5)
+	fld	ft3, %lo(.LCPI2_5)(a1)
+	fadd.d	ft1, ft1, ft2
+	lui	a1, %hi(.LCPI2_6)
+	fld	ft2, %lo(.LCPI2_6)(a1)
+	fmul.d	ft1, ft1, ft3
+	lui	a1, %hi(.LCPI2_7)
+	fld	ft3, %lo(.LCPI2_7)(a1)
+	fmul.d	ft2, ft0, ft2
+	lui	a1, %hi(.LCPI2_8)
+	fld	ft4, %lo(.LCPI2_8)(a1)
+	fdiv.d	ft3, ft5, ft3
+	fadd.d	ft2, ft2, ft3
+	fsd	ft1, -16(a0)
+	fmul.d	ft2, ft2, ft4
+	fadd.d	ft0, ft5, ft0
+	fadd.d	ft0, ft0, ft1
+	fadd.d	ft0, ft0, ft2
+.LBB2_2:                                # %common.ret
+	fsd	ft0, -24(s0)
+	lw	a0, -24(s0)
+	lw	a1, -20(s0)
+	addi	sp, s0, -48
+	lw	ra, 44(sp)                      # 4-byte Folded Reload
+	lw	s0, 40(sp)                      # 4-byte Folded Reload
+	lw	s1, 36(sp)                      # 4-byte Folded Reload
+	addi	sp, sp, 48
+	ret
+.Lfunc_end2:
+	.size	medium.modified_fibonacci, .Lfunc_end2-medium.modified_fibonacci
+	.cfi_endproc
+                                        # -- End function
+	.type	0,@object                       # @"0"
+	.section	.rodata,"a",@progbits
+0:
+	.asciz	"%s\n"
+	.size	0, 4
+
+	.type	1,@object                       # @"1"
+	.p2align	4
+1:
+	.asciz	"1. Fibonacci Sequence"
+	.size	1, 22
+
+	.type	2,@object                       # @"2"
+2:
+	.asciz	"%f\n"
+	.size	2, 4
+
+	.type	3,@object                       # @"3"
+3:
+	.asciz	"%s\n"
+	.size	3, 4
+
+	.type	4,@object                       # @"4"
+	.p2align	4
+4:
+	.asciz	"2. Modified Fibonacci Sequence"
+	.size	4, 31
+
+	.type	5,@object                       # @"5"
+5:
+	.asciz	"%s\n"
+	.size	5, 4
+
+	.type	6,@object                       # @"6"
+	.p2align	4
+6:
+	.asciz	"Modified Fibonacci(15):"
+	.size	6, 24
+
+	.type	7,@object                       # @"7"
+7:
+	.asciz	"%f\n"
+	.size	7, 4
+
+	.type	8,@object                       # @"8"
+8:
+	.asciz	"%s\n"
+	.size	8, 4
+
+	.type	9,@object                       # @"9"
+	.p2align	4
+9:
+	.asciz	"3. More Arithmetics"
+	.size	9, 20
+
+	.type	10,@object                      # @"10"
+10:
+	.asciz	"%d\n"
+	.size	10, 4
+
+	.type	11,@object                      # @"11"
+11:
+	.asciz	"%f\n"
+	.size	11, 4
+
+	.type	12,@object                      # @"12"
+12:
+	.asciz	"%d\n"
+	.size	12, 4
+
+	.type	13,@object                      # @"13"
+13:
+	.asciz	"%f\n"
+	.size	13, 4
+
+	.type	14,@object                      # @"14"
+14:
+	.asciz	"%s\n"
+	.size	14, 4
+
+	.type	15,@object                      # @"15"
+	.p2align	4
+15:
+	.asciz	"4. List Iteration"
+	.size	15, 18
+
+	.type	16,@object                      # @"16"
+16:
+	.asciz	"foo"
+	.size	16, 4
+
+	.type	17,@object                      # @"17"
+17:
+	.asciz	"bar"
+	.size	17, 4
+
+	.type	18,@object                      # @"18"
+18:
+	.asciz	"str"
+	.size	18, 4
+
+	.type	19,@object                      # @"19"
+19:
+	.asciz	"test"
+	.size	19, 5
+
+	.type	20,@object                      # @"20"
+20:
+	.asciz	"halo"
+	.size	20, 5
+
+	.type	21,@object                      # @"21"
+21:
+	.asciz	"%s\n"
+	.size	21, 4
+
+	.section	".note.GNU-stack","",@progbits
+
+3. Optimzations: instcombine
+
+llvm ir
+
+; ModuleID = '<string>'
+source_filename = "<string>"
+target datalayout = "e-m:e-i32:32-i16:16-i8:8-n32-S32"
+target triple = "riscv32-unknown-linux-gnu"
+
+%str = type { i32, i8* }
+%"list[int]" = type { i32, i32* }
+%"list[str]" = type { i32, %str* }
+
+@"0" = internal constant [4 x i8] c"%s\0A\00"
+@"1" = internal constant [22 x i8] c"1. Fibonacci Sequence\00"
+@"2" = internal constant [4 x i8] c"%f\0A\00"
+@"3" = internal constant [4 x i8] c"%s\0A\00"
+@"4" = internal constant [31 x i8] c"2. Modified Fibonacci Sequence\00"
+@"5" = internal constant [4 x i8] c"%s\0A\00"
+@"6" = internal constant [24 x i8] c"Modified Fibonacci(15):\00"
+@"7" = internal constant [4 x i8] c"%f\0A\00"
+@"8" = internal constant [4 x i8] c"%s\0A\00"
+@"9" = internal constant [20 x i8] c"3. More Arithmetics\00"
+@"10" = internal constant [4 x i8] c"%d\0A\00"
+@"11" = internal constant [4 x i8] c"%f\0A\00"
+@"12" = internal constant [4 x i8] c"%d\0A\00"
+@"13" = internal constant [4 x i8] c"%f\0A\00"
+@"14" = internal constant [4 x i8] c"%s\0A\00"
+@"15" = internal constant [18 x i8] c"4. List Iteration\00"
+@"16" = internal constant [4 x i8] c"foo\00"
+@"17" = internal constant [4 x i8] c"bar\00"
+@"18" = internal constant [4 x i8] c"str\00"
+@"19" = internal constant [5 x i8] c"test\00"
+@"20" = internal constant [5 x i8] c"halo\00"
+@"21" = internal constant [4 x i8] c"%s\0A\00"
+
+define void @main() {
+entry:
+  %.2 = getelementptr [4 x i8], [4 x i8]* @"0", i32 0, i32 0
+  %.3 = getelementptr [22 x i8], [22 x i8]* @"1", i32 0, i32 0
+  %.4 = alloca %str, align 8
+  %.5 = getelementptr %str, %str* %.4, i32 0, i32 0
+  %.6 = getelementptr %str, %str* %.4, i32 0, i32 1
+  store i32 21, i32* %.5, align 4
+  store i8* %.3, i8** %.6, align 8
+  %.9 = getelementptr %str, %str* %.4, i32 0, i32 1
+  %.10 = load i8*, i8** %.9, align 8
+  %print = call i32 (i8*, ...) @printf(i8* %.2, i8* %.10)
+  %.11 = alloca i32, align 4
+  store i32 20, i32* %.11, align 4
+  %.13 = alloca i32, align 4
+  %.14 = load i32, i32* %.11, align 4
+  %.15 = alloca i32, i32 %.14, align 4
+  %.16 = alloca i32, align 4
+  store i32 0, i32* %.16, align 4
+  br label %cond
+
+cond:                                             ; preds = %range-body, %entry
+  %.19 = load i32, i32* %.16, align 4
+  %.20 = icmp slt i32 %.19, %.14
+  br i1 %.20, label %range-body, label %after
+
+range-body:                                       ; preds = %cond
+  %.22 = getelementptr i32, i32* %.15, i32 %.19
+  store i32 %.19, i32* %.22, align 4
+  %.24 = add i32 %.19, 1
+  store i32 %.24, i32* %.16, align 4
+  br label %cond
+
+after:                                            ; preds = %cond
+  %.27 = alloca %"list[int]", align 8
+  %.28 = getelementptr %"list[int]", %"list[int]"* %.27, i32 0, i32 0
+  %.29 = getelementptr %"list[int]", %"list[int]"* %.27, i32 0, i32 1
+  store i32 %.14, i32* %.28, align 4
+  store i32* %.15, i32** %.29, align 8
+  %.32 = alloca i32, align 4
+  store i32 0, i32* %.32, align 4
+  br label %cond.1
+
+cond.1:                                           ; preds = %after.1, %after
+  %.35 = load i32, i32* %.32, align 4
+  %.36 = getelementptr %"list[int]", %"list[int]"* %.27, i32 0, i32 0
+  %.37 = load i32, i32* %.36, align 4
+  %.38 = icmp slt i32 %.35, %.37
+  br i1 %.38, label %for-body, label %orelse-body
+
+for-body:                                         ; preds = %cond.1
+  %.40 = getelementptr %"list[int]", %"list[int]"* %.27, i32 0, i32 1
+  %.41 = load i32*, i32** %.40, align 8
+  %.42 = getelementptr i32, i32* %.41, i32 %.35
+  %.43 = load i32, i32* %.42, align 4
+  store i32 %.43, i32* %.13, align 4
+  %.45 = load i32, i32* %.13, align 4
+  %.46 = icmp ne i32 %.45, 0
+  br i1 %.46, label %if-true, label %or-else
+
+orelse-body:                                      ; preds = %cond.1
+  br label %after-for
+
+after-for:                                        ; preds = %orelse-body
+  %.58 = getelementptr [4 x i8], [4 x i8]* @"3", i32 0, i32 0
+  %.59 = getelementptr [31 x i8], [31 x i8]* @"4", i32 0, i32 0
+  %.60 = alloca %str, align 8
+  %.61 = getelementptr %str, %str* %.60, i32 0, i32 0
+  %.62 = getelementptr %str, %str* %.60, i32 0, i32 1
+  store i32 30, i32* %.61, align 4
+  store i8* %.59, i8** %.62, align 8
+  %.65 = getelementptr %str, %str* %.60, i32 0, i32 1
+  %.66 = load i8*, i8** %.65, align 8
+  %print.2 = call i32 (i8*, ...) @printf(i8* %.58, i8* %.66)
+  %.67 = getelementptr [4 x i8], [4 x i8]* @"5", i32 0, i32 0
+  %.68 = getelementptr [24 x i8], [24 x i8]* @"6", i32 0, i32 0
+  %.69 = alloca %str, align 8
+  %.70 = getelementptr %str, %str* %.69, i32 0, i32 0
+  %.71 = getelementptr %str, %str* %.69, i32 0, i32 1
+  store i32 23, i32* %.70, align 4
+  store i8* %.68, i8** %.71, align 8
+  %.74 = getelementptr %str, %str* %.69, i32 0, i32 1
+  %.75 = load i8*, i8** %.74, align 8
+  %print.3 = call i32 (i8*, ...) @printf(i8* %.67, i8* %.75)
+  %.76 = getelementptr [4 x i8], [4 x i8]* @"7", i32 0, i32 0
+  %.77 = call double @medium.modified_fibonacci(double 1.500000e+01)
+  %print.4 = call i32 (i8*, ...) @printf(i8* %.76, double %.77)
+  %.78 = getelementptr [4 x i8], [4 x i8]* @"8", i32 0, i32 0
+  %.79 = getelementptr [20 x i8], [20 x i8]* @"9", i32 0, i32 0
+  %.80 = alloca %str, align 8
+  %.81 = getelementptr %str, %str* %.80, i32 0, i32 0
+  %.82 = getelementptr %str, %str* %.80, i32 0, i32 1
+  store i32 19, i32* %.81, align 4
+  store i8* %.79, i8** %.82, align 8
+  %.85 = getelementptr %str, %str* %.80, i32 0, i32 1
+  %.86 = load i8*, i8** %.85, align 8
+  %print.5 = call i32 (i8*, ...) @printf(i8* %.78, i8* %.86)
+  %.87 = alloca i32, align 4
+  store i32 3, i32* %.87, align 4
+  %.89 = alloca i32, align 4
+  store i32 2, i32* %.89, align 4
+  %.91 = alloca i32, align 4
+  %.92 = load i32, i32* %.87, align 4
+  %.93 = load i32, i32* %.89, align 4
+  %.94 = sdiv i32 %.92, %.93
+  store i32 %.94, i32* %.91, align 4
+  %.96 = getelementptr [4 x i8], [4 x i8]* @"10", i32 0, i32 0
+  %.97 = load i32, i32* %.91, align 4
+  %print.6 = call i32 (i8*, ...) @printf(i8* %.96, i32 %.97)
+  %.98 = alloca double, align 8
+  %.99 = load i32, i32* %.87, align 4
+  %.100 = sitofp i32 %.99 to double
+  %.101 = load i32, i32* %.89, align 4
+  %.102 = sitofp i32 %.101 to double
+  %.103 = fdiv double %.100, %.102
+  store double %.103, double* %.98, align 8
+  %.105 = getelementptr [4 x i8], [4 x i8]* @"11", i32 0, i32 0
+  %.106 = load double, double* %.98, align 8
+  %print.7 = call i32 (i8*, ...) @printf(i8* %.105, double %.106)
+  %.107 = alloca i32, align 4
+  %.108 = mul i32 5, 2
+  %.109 = add i32 3, %.108
+  %.110 = sdiv i32 8, 4
+  %.111 = sub i32 %.109, %.110
+  store i32 %.111, i32* %.107, align 4
+  %.113 = getelementptr [4 x i8], [4 x i8]* @"12", i32 0, i32 0
+  %.114 = load i32, i32* %.107, align 4
+  %print.8 = call i32 (i8*, ...) @printf(i8* %.113, i32 %.114)
+  %.115 = alloca double, align 8
+  %.116 = sitofp i32 3 to double
+  %.117 = sitofp i32 5 to double
+  %.118 = sitofp i32 2 to double
+  %.119 = fmul double %.117, %.118
+  %.120 = fadd double %.116, %.119
+  %.121 = sitofp i32 8 to double
+  %.122 = sitofp i32 4 to double
+  %.123 = fdiv double %.121, %.122
+  %.124 = fsub double %.120, %.123
+  store double %.124, double* %.115, align 8
+  %.126 = getelementptr [4 x i8], [4 x i8]* @"13", i32 0, i32 0
+  %.127 = load double, double* %.115, align 8
+  %print.9 = call i32 (i8*, ...) @printf(i8* %.126, double %.127)
+  %.128 = getelementptr [4 x i8], [4 x i8]* @"14", i32 0, i32 0
+  %.129 = getelementptr [18 x i8], [18 x i8]* @"15", i32 0, i32 0
+  %.130 = alloca %str, align 8
+  %.131 = getelementptr %str, %str* %.130, i32 0, i32 0
+  %.132 = getelementptr %str, %str* %.130, i32 0, i32 1
+  store i32 17, i32* %.131, align 4
+  store i8* %.129, i8** %.132, align 8
+  %.135 = getelementptr %str, %str* %.130, i32 0, i32 1
+  %.136 = load i8*, i8** %.135, align 8
+  %print.10 = call i32 (i8*, ...) @printf(i8* %.128, i8* %.136)
+  %.137 = alloca %"list[str]", align 8
+  %.138 = getelementptr [4 x i8], [4 x i8]* @"16", i32 0, i32 0
+  %.139 = alloca %str, align 8
+  %.140 = getelementptr %str, %str* %.139, i32 0, i32 0
+  %.141 = getelementptr %str, %str* %.139, i32 0, i32 1
+  store i32 3, i32* %.140, align 4
+  store i8* %.138, i8** %.141, align 8
+  %.144 = getelementptr [4 x i8], [4 x i8]* @"17", i32 0, i32 0
+  %.145 = alloca %str, align 8
+  %.146 = getelementptr %str, %str* %.145, i32 0, i32 0
+  %.147 = getelementptr %str, %str* %.145, i32 0, i32 1
+  store i32 3, i32* %.146, align 4
+  store i8* %.144, i8** %.147, align 8
+  %.150 = getelementptr [4 x i8], [4 x i8]* @"18", i32 0, i32 0
+  %.151 = alloca %str, align 8
+  %.152 = getelementptr %str, %str* %.151, i32 0, i32 0
+  %.153 = getelementptr %str, %str* %.151, i32 0, i32 1
+  store i32 3, i32* %.152, align 4
+  store i8* %.150, i8** %.153, align 8
+  %.156 = getelementptr [5 x i8], [5 x i8]* @"19", i32 0, i32 0
+  %.157 = alloca %str, align 8
+  %.158 = getelementptr %str, %str* %.157, i32 0, i32 0
+  %.159 = getelementptr %str, %str* %.157, i32 0, i32 1
+  store i32 4, i32* %.158, align 4
+  store i8* %.156, i8** %.159, align 8
+  %.162 = getelementptr [5 x i8], [5 x i8]* @"20", i32 0, i32 0
+  %.163 = alloca %str, align 8
+  %.164 = getelementptr %str, %str* %.163, i32 0, i32 0
+  %.165 = getelementptr %str, %str* %.163, i32 0, i32 1
+  store i32 4, i32* %.164, align 4
+  store i8* %.162, i8** %.165, align 8
+  %.168 = alloca %"list[str]", align 8
+  %.169 = getelementptr %"list[str]", %"list[str]"* %.168, i32 0, i32 0
+  store i32 5, i32* %.169, align 4
+  %.171 = alloca %str, i32 5, align 8
+  %.172 = getelementptr %"list[str]", %"list[str]"* %.168, i32 0, i32 1
+  store %str* %.171, %str** %.172, align 8
+  %.174 = getelementptr %str, %str* %.171, i32 0
+  %.175 = bitcast %str* %.174 to i8*
+  %.176 = bitcast %str* %.139 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.175, i8* %.176, i32 8, i1 false)
+  %.178 = getelementptr %str, %str* %.171, i32 1
+  %.179 = bitcast %str* %.178 to i8*
+  %.180 = bitcast %str* %.145 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.179, i8* %.180, i32 8, i1 false)
+  %.182 = getelementptr %str, %str* %.171, i32 2
+  %.183 = bitcast %str* %.182 to i8*
+  %.184 = bitcast %str* %.151 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.183, i8* %.184, i32 8, i1 false)
+  %.186 = getelementptr %str, %str* %.171, i32 3
+  %.187 = bitcast %str* %.186 to i8*
+  %.188 = bitcast %str* %.157 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.187, i8* %.188, i32 8, i1 false)
+  %.190 = getelementptr %str, %str* %.171, i32 4
+  %.191 = bitcast %str* %.190 to i8*
+  %.192 = bitcast %str* %.163 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.191, i8* %.192, i32 8, i1 false)
+  %.194 = bitcast %"list[str]"* %.137 to i8*
+  %.195 = bitcast %"list[str]"* %.168 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.194, i8* %.195, i32 8, i1 false)
+  %.197 = alloca %str, align 8
+  %.198 = alloca i32, align 4
+  store i32 0, i32* %.198, align 4
+  br label %cond.2
+
+if-true:                                          ; preds = %for-body
+  %.48 = getelementptr [4 x i8], [4 x i8]* @"2", i32 0, i32 0
+  %.49 = load i32, i32* %.13, align 4
+  %.50 = sitofp i32 %.49 to double
+  %.51 = call double @medium.fibonacci(double %.50)
+  %print.1 = call i32 (i8*, ...) @printf(i8* %.48, double %.51)
+  br label %after.1
+
+or-else:                                          ; preds = %for-body
+  br label %after.1
+
+after.1:                                          ; preds = %or-else, %if-true
+  %.54 = add i32 %.35, 1
+  store i32 %.54, i32* %.32, align 4
+  br label %cond.1
+
+cond.2:                                           ; preds = %for-body.1, %after-for
+  %.201 = load i32, i32* %.198, align 4
+  %.202 = getelementptr %"list[str]", %"list[str]"* %.137, i32 0, i32 0
+  %.203 = load i32, i32* %.202, align 4
+  %.204 = icmp slt i32 %.201, %.203
+  br i1 %.204, label %for-body.1, label %orelse-body.1
+
+for-body.1:                                       ; preds = %cond.2
+  %.206 = getelementptr %"list[str]", %"list[str]"* %.137, i32 0, i32 1
+  %.207 = load %str*, %str** %.206, align 8
+  %.208 = getelementptr %str, %str* %.207, i32 %.201
+  %.209 = bitcast %str* %.197 to i8*
+  %.210 = bitcast %str* %.208 to i8*
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* %.209, i8* %.210, i32 8, i1 false)
+  %.212 = getelementptr [4 x i8], [4 x i8]* @"21", i32 0, i32 0
+  %.213 = getelementptr %str, %str* %.197, i32 0, i32 1
+  %.214 = load i8*, i8** %.213, align 8
+  %print.11 = call i32 (i8*, ...) @printf(i8* %.212, i8* %.214)
+  %.215 = add i32 %.201, 1
+  store i32 %.215, i32* %.198, align 4
+  br label %cond.2
+
+orelse-body.1:                                    ; preds = %cond.2
+  br label %after-for.1
+
+after-for.1:                                      ; preds = %orelse-body.1
+  ret void
+}
+
+declare i32 @printf(i8*, ...)
+
+declare i8* @readline(i8*, ...)
+
+declare i32 @strlen(i8*, ...)
+
+declare i16 @memcmp(i8*, i8*, i32)
+
+define double @medium.fibonacci(double %.1) {
+entry:
+  %.3 = alloca double, align 8
+  store double %.1, double* %.3, align 8
+  %.5 = load double, double* %.3, align 8
+  %.6 = fcmp ole double %.5, 1.000000e+00
+  br i1 %.6, label %if-true, label %or-else
+
+if-true:                                          ; preds = %entry
+  %.8 = load double, double* %.3, align 8
+  ret double %.8
+
+or-else:                                          ; preds = %entry
+  %.10 = load double, double* %.3, align 8
+  %.11 = fsub double %.10, 1.000000e+00
+  %.12 = call double @medium.fibonacci(double %.11)
+  %.13 = load double, double* %.3, align 8
+  %.14 = fsub double %.13, 2.000000e+00
+  %.15 = call double @medium.fibonacci(double %.14)
+  %.16 = fadd double %.12, %.15
+  ret double %.16
+
+after:                                            ; No predecessors!
+  %.18 = alloca double, align 8
+  %.19 = load double, double* %.18, align 8
+  ret double %.19
+}
+
+define double @medium.modified_fibonacci(double %.1) {
+entry:
+  %.3 = alloca double, align 8
+  store double %.1, double* %.3, align 8
+  %.5 = load double, double* %.3, align 8
+  %.6 = fcmp ole double %.5, 1.000000e+00
+  br i1 %.6, label %if-true, label %or-else
+
+if-true:                                          ; preds = %entry
+  ret double 1.000000e+00
+
+or-else:                                          ; preds = %entry
+  br label %after
+
+after:                                            ; preds = %or-else
+  %.10 = alloca double, align 8
+  %.11 = load double, double* %.3, align 8
+  %.12 = fsub double %.11, 1.000000e+00
+  %.13 = call double @medium.modified_fibonacci(double %.12)
+  store double %.13, double* %.10, align 8
+  %.15 = alloca double, align 8
+  %.16 = load double, double* %.3, align 8
+  %.17 = fsub double %.16, 2.000000e+00
+  %.18 = call double @medium.modified_fibonacci(double %.17)
+  store double %.18, double* %.15, align 8
+  %.20 = alloca double, align 8
+  %.21 = load double, double* %.10, align 8
+  %.22 = fmul double %.21, 1.000100e+00
+  %.23 = load double, double* %.15, align 8
+  %.24 = fdiv double %.23, 1.000200e+00
+  %.25 = fsub double %.22, %.24
+  %.26 = fmul double %.25, 1.000300e+00
+  store double %.26, double* %.20, align 8
+  %.28 = alloca double, align 8
+  %.29 = load double, double* %.15, align 8
+  %.30 = fmul double %.29, 1.000400e+00
+  %.31 = load double, double* %.10, align 8
+  %.32 = fdiv double %.31, 1.000500e+00
+  %.33 = fadd double %.30, %.32
+  %.34 = fmul double %.33, 1.000600e+00
+  store double %.34, double* %.28, align 8
+  %.36 = load double, double* %.10, align 8
+  %.37 = load double, double* %.15, align 8
+  %.38 = fadd double %.36, %.37
+  %.39 = load double, double* %.20, align 8
+  %.40 = fadd double %.38, %.39
+  %.41 = load double, double* %.28, align 8
+  %.42 = fadd double %.40, %.41
+  ret double %.42
+}
+
+; Function Attrs: argmemonly nofree nounwind willreturn
+declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+
+attributes #0 = { argmemonly nofree nounwind willreturn }
+
+
+assembly
+	.text
+	.attribute	4, 16
+	.attribute	5, "rv32i2p0_m2p0_a2p0_f2p0_d2p0"
+	.file	"<string>"
+	.globl	main                            # -- Begin function main
+	.p2align	2
+	.type	main,@function
+main:                                   # @main
+	.cfi_startproc
+# %bb.0:                                # %entry
+	addi	sp, sp, -112
+	.cfi_def_cfa_offset 112
+	sw	ra, 108(sp)                     # 4-byte Folded Spill
+	sw	s0, 104(sp)                     # 4-byte Folded Spill
+	sw	s1, 100(sp)                     # 4-byte Folded Spill
+	sw	s2, 96(sp)                      # 4-byte Folded Spill
+	sw	s3, 92(sp)                      # 4-byte Folded Spill
+	.cfi_offset ra, -4
+	.cfi_offset s0, -8
+	.cfi_offset s1, -12
+	.cfi_offset s2, -16
+	.cfi_offset s3, -20
+	addi	s0, sp, 112
+	.cfi_def_cfa s0, 0
+	lui	a0, %hi(1)
+	addi	a0, a0, %lo(1)
+	call	puts@plt
+	li	a0, 0
+	li	a1, 19
+	addi	a2, s0, -104
+	blt	a1, a0, .LBB0_2
+.LBB0_1:                                # %range-body
+                                        # =>This Inner Loop Header: Depth=1
+	slli	a3, a0, 2
+	add	a3, a2, a3
+	sw	a0, 0(a3)
+	addi	a0, a0, 1
+	bge	a1, a0, .LBB0_1
+.LBB0_2:                                # %after
+	mv	a0, sp
+	addi	s2, a0, -16
+	mv	sp, s2
+	li	s3, 0
+	li	a1, 20
+	sw	a1, -16(a0)
+	addi	a1, s0, -104
+	sw	a1, -12(a0)
+	lui	a0, %hi(2)
+	addi	s1, a0, %lo(2)
+	j	.LBB0_4
+.LBB0_3:                                # %after.1
+                                        #   in Loop: Header=BB0_4 Depth=1
+	addi	s3, s3, 1
+.LBB0_4:                                # %cond.1
+                                        # =>This Inner Loop Header: Depth=1
+	lw	a0, 0(s2)
+	bge	s3, a0, .LBB0_7
+# %bb.5:                                # %for-body
+                                        #   in Loop: Header=BB0_4 Depth=1
+	lw	a0, 4(s2)
+	slli	a1, s3, 2
+	add	a0, a0, a1
+	lw	a0, 0(a0)
+	sw	a0, -24(s0)
+	beqz	a0, .LBB0_3
+# %bb.6:                                # %if-true
+                                        #   in Loop: Header=BB0_4 Depth=1
+	lw	a0, -24(s0)
+	fcvt.d.w	ft0, a0
+	fsd	ft0, -112(s0)
+	lw	a0, -112(s0)
+	lw	a1, -108(s0)
+	call	medium.fibonacci@plt
+	mv	a2, a0
+	mv	a0, s1
+	mv	a3, a1
+	call	printf@plt
+	j	.LBB0_3
+.LBB0_7:                                # %orelse-body
+	lui	a0, %hi(4)
+	addi	a0, a0, %lo(4)
+	call	puts@plt
+	lui	a0, %hi(6)
+	addi	a0, a0, %lo(6)
+	call	puts@plt
+	lui	a1, 262880
+	li	a0, 0
+	call	medium.modified_fibonacci@plt
+	mv	a2, a0
+	lui	a0, %hi(7)
+	addi	a0, a0, %lo(7)
+	mv	a3, a1
+	call	printf@plt
+	lui	a0, %hi(9)
+	addi	a0, a0, %lo(9)
+	call	puts@plt
+	lui	a0, %hi(10)
+	addi	a0, a0, %lo(10)
+	li	a1, 1
+	call	printf@plt
+	lui	a0, %hi(11)
+	addi	a0, a0, %lo(11)
+	lui	a3, 262016
+	li	a2, 0
+	call	printf@plt
+	lui	a0, %hi(12)
+	addi	a0, a0, %lo(12)
+	li	a1, 11
+	call	printf@plt
+	lui	a0, %hi(13)
+	addi	a0, a0, %lo(13)
+	lui	a3, 262752
+	li	a2, 0
+	call	printf@plt
+	lui	a0, %hi(15)
+	addi	a0, a0, %lo(15)
+	call	puts@plt
+	mv	a0, sp
+	addi	s1, a0, -16
+	mv	sp, s1
+	mv	a1, sp
+	addi	sp, a1, -16
+	li	a2, 3
+	sw	a2, -16(a1)
+	lui	a3, %hi(16)
+	addi	a3, a3, %lo(16)
+	sw	a3, -12(a1)
+	mv	a3, sp
+	addi	sp, a3, -16
+	sw	a2, -16(a3)
+	lui	a4, %hi(17)
+	addi	a4, a4, %lo(17)
+	sw	a4, -12(a3)
+	mv	a4, sp
+	addi	sp, a4, -16
+	sw	a2, -16(a4)
+	lui	a2, %hi(18)
+	addi	a2, a2, %lo(18)
+	sw	a2, -12(a4)
+	mv	a2, sp
+	addi	sp, a2, -16
+	li	a5, 4
+	sw	a5, -16(a2)
+	lui	a6, %hi(19)
+	addi	a6, a6, %lo(19)
+	sw	a6, -12(a2)
+	mv	a6, sp
+	addi	sp, a6, -16
+	sw	a5, -16(a6)
+	lui	a5, %hi(20)
+	addi	a5, a5, %lo(20)
+	sw	a5, -12(a6)
+	mv	a5, sp
+	addi	sp, a5, -16
+	li	a7, 5
+	sw	a7, -16(a5)
+	mv	a7, sp
+	addi	t0, a7, -48
+	mv	sp, t0
+	sw	t0, -12(a5)
+	lw	t0, -12(a1)
+	lw	a1, -16(a1)
+	lw	t1, -16(a3)
+	lw	a3, -12(a3)
+	sw	t0, -44(a7)
+	sw	a1, -48(a7)
+	sw	t1, -40(a7)
+	sw	a3, -36(a7)
+	lw	a1, -12(a4)
+	lw	a3, -16(a4)
+	lw	a4, -16(a2)
+	lw	a2, -12(a2)
+	sw	a1, -28(a7)
+	sw	a3, -32(a7)
+	sw	a4, -24(a7)
+	sw	a2, -20(a7)
+	lw	a1, -12(a6)
+	lw	a2, -16(a6)
+	lw	a3, -12(a5)
+	lw	a4, -16(a5)
+	sw	a1, -12(a7)
+	sw	a2, -16(a7)
+	sw	a3, -12(a0)
+	sw	a4, -16(a0)
+	addi	s2, sp, -16
+	mv	sp, s2
+	li	s3, 0
+	lw	a0, 0(s1)
+	bge	s3, a0, .LBB0_9
+.LBB0_8:                                # %for-body.1
+                                        # =>This Inner Loop Header: Depth=1
+	lw	a0, 4(s1)
+	slli	a1, s3, 3
+	add	a0, a0, a1
+	lbu	a1, 1(a0)
+	lbu	a2, 0(a0)
+	lbu	a3, 3(a0)
+	lbu	a4, 2(a0)
+	slli	a1, a1, 8
+	or	a1, a1, a2
+	slli	a2, a3, 8
+	or	a2, a2, a4
+	slli	a2, a2, 16
+	or	a1, a2, a1
+	lbu	a2, 5(a0)
+	lbu	a3, 4(a0)
+	lbu	a4, 7(a0)
+	lbu	a0, 6(a0)
+	slli	a2, a2, 8
+	or	a2, a2, a3
+	slli	a3, a4, 8
+	or	a0, a3, a0
+	slli	a0, a0, 16
+	or	a0, a0, a2
+	sw	a0, 4(s2)
+	sw	a1, 0(s2)
+	call	puts@plt
+	addi	s3, s3, 1
+	lw	a0, 0(s1)
+	blt	s3, a0, .LBB0_8
+.LBB0_9:                                # %orelse-body.1
+	addi	sp, s0, -112
+	lw	ra, 108(sp)                     # 4-byte Folded Reload
+	lw	s0, 104(sp)                     # 4-byte Folded Reload
+	lw	s1, 100(sp)                     # 4-byte Folded Reload
+	lw	s2, 96(sp)                      # 4-byte Folded Reload
+	lw	s3, 92(sp)                      # 4-byte Folded Reload
+	addi	sp, sp, 112
+	ret
+.Lfunc_end0:
+	.size	main, .Lfunc_end0-main
+	.cfi_endproc
+                                        # -- End function
+	.section	.sdata,"aw",@progbits
+	.p2align	3                               # -- Begin function medium.fibonacci
+.LCPI1_0:
+	.quad	0x3ff0000000000000              # double 1
+.LCPI1_1:
+	.quad	0xbff0000000000000              # double -1
+.LCPI1_2:
+	.quad	0xc000000000000000              # double -2
+	.text
+	.globl	medium.fibonacci
+	.p2align	2
+	.type	medium.fibonacci,@function
+medium.fibonacci:                       # @medium.fibonacci
+	.cfi_startproc
+# %bb.0:                                # %entry
+	addi	sp, sp, -48
+	.cfi_def_cfa_offset 48
+	sw	ra, 44(sp)                      # 4-byte Folded Spill
+	.cfi_offset ra, -4
+	sw	a0, 24(sp)
+	sw	a1, 28(sp)
+	fld	ft0, 24(sp)
+	lui	a0, %hi(.LCPI1_0)
+	fld	ft1, %lo(.LCPI1_0)(a0)
+	fle.d	a0, ft0, ft1
+	fsd	ft0, 32(sp)
+	bnez	a0, .LBB1_2
+# %bb.1:                                # %or-else
+	fld	ft1, 32(sp)
+	fsd	ft1, 16(sp)                     # 8-byte Folded Spill
+	lui	a0, %hi(.LCPI1_1)
+	fld	ft0, %lo(.LCPI1_1)(a0)
+	fadd.d	ft0, ft1, ft0
+	fsd	ft0, 24(sp)
+	lw	a0, 24(sp)
+	lw	a1, 28(sp)
+	call	medium.fibonacci@plt
+	lui	a2, %hi(.LCPI1_2)
+	fld	ft0, %lo(.LCPI1_2)(a2)
+	sw	a0, 24(sp)
+	sw	a1, 28(sp)
+	fld	ft1, 24(sp)
+	fsd	ft1, 8(sp)                      # 8-byte Folded Spill
+	fld	ft1, 16(sp)                     # 8-byte Folded Reload
+	fadd.d	ft0, ft1, ft0
+	fsd	ft0, 24(sp)
+	lw	a0, 24(sp)
+	lw	a1, 28(sp)
+	call	medium.fibonacci@plt
+	sw	a0, 24(sp)
+	sw	a1, 28(sp)
+	fld	ft0, 24(sp)
+	fld	ft1, 8(sp)                      # 8-byte Folded Reload
+	fadd.d	ft0, ft1, ft0
+	j	.LBB1_3
+.LBB1_2:                                # %if-true
+	fld	ft0, 32(sp)
+.LBB1_3:                                # %if-true
+	fsd	ft0, 24(sp)
+	lw	a0, 24(sp)
+	lw	a1, 28(sp)
+	lw	ra, 44(sp)                      # 4-byte Folded Reload
+	addi	sp, sp, 48
+	ret
+.Lfunc_end1:
+	.size	medium.fibonacci, .Lfunc_end1-medium.fibonacci
+	.cfi_endproc
+                                        # -- End function
+	.section	.sdata,"aw",@progbits
+	.p2align	3                               # -- Begin function medium.modified_fibonacci
+.LCPI2_0:
+	.quad	0x3ff0000000000000              # double 1
+.LCPI2_1:
+	.quad	0xbff0000000000000              # double -1
+.LCPI2_2:
+	.quad	0xc000000000000000              # double -2
+.LCPI2_3:
+	.quad	0x3ff00068db8bac71              # double 1.0001
+.LCPI2_4:
+	.quad	0xbff000d1b71758e2              # double -1.0002
+.LCPI2_5:
+	.quad	0x3ff0013a92a30553              # double 1.0003
+.LCPI2_6:
+	.quad	0x3ff001a36e2eb1c4              # double 1.0004
+.LCPI2_7:
+	.quad	0x3ff0020c49ba5e35              # double 1.0004999999999999
+.LCPI2_8:
+	.quad	0x3ff0027525460aa6              # double 1.0005999999999999
+	.text
+	.globl	medium.modified_fibonacci
+	.p2align	2
+	.type	medium.modified_fibonacci,@function
+medium.modified_fibonacci:              # @medium.modified_fibonacci
+	.cfi_startproc
+# %bb.0:                                # %entry
+	addi	sp, sp, -48
+	.cfi_def_cfa_offset 48
+	sw	ra, 44(sp)                      # 4-byte Folded Spill
+	sw	s0, 40(sp)                      # 4-byte Folded Spill
+	sw	s1, 36(sp)                      # 4-byte Folded Spill
+	sw	s2, 32(sp)                      # 4-byte Folded Spill
+	.cfi_offset ra, -4
+	.cfi_offset s0, -8
+	.cfi_offset s1, -12
+	.cfi_offset s2, -16
+	addi	s0, sp, 48
+	.cfi_def_cfa s0, 0
+	sw	a0, -32(s0)
+	sw	a1, -28(s0)
+	fld	ft0, -32(s0)
+	lui	a0, %hi(.LCPI2_0)
+	fld	ft1, %lo(.LCPI2_0)(a0)
+	fle.d	a0, ft0, ft1
+	fsd	ft0, -24(s0)
+	bnez	a0, .LBB2_2
+# %bb.1:                                # %or-else
+	mv	s1, sp
+	addi	sp, s1, -16
+	fld	ft1, -24(s0)
+	fsd	ft1, -48(s0)                    # 8-byte Folded Spill
+	lui	a0, %hi(.LCPI2_1)
+	fld	ft0, %lo(.LCPI2_1)(a0)
+	fadd.d	ft0, ft1, ft0
+	fsd	ft0, -32(s0)
+	lw	a0, -32(s0)
+	lw	a1, -28(s0)
+	call	medium.modified_fibonacci@plt
+	sw	a0, -32(s0)
+	sw	a1, -28(s0)
+	fld	ft0, -32(s0)
+	fsd	ft0, -40(s0)                    # 8-byte Folded Spill
+	fsd	ft0, -16(s1)
+	mv	s2, sp
+	addi	sp, s2, -16
+	lui	a0, %hi(.LCPI2_2)
+	fld	ft0, %lo(.LCPI2_2)(a0)
+	fld	ft1, -48(s0)                    # 8-byte Folded Reload
+	fadd.d	ft0, ft1, ft0
+	fsd	ft0, -32(s0)
+	lw	a0, -32(s0)
+	lw	a1, -28(s0)
+	call	medium.modified_fibonacci@plt
+	sw	a0, -32(s0)
+	sw	a1, -28(s0)
+	fld	ft0, -32(s0)
+	fsd	ft0, -16(s2)
+	mv	a0, sp
+	addi	sp, a0, -16
+	lui	a1, %hi(.LCPI2_3)
+	fld	ft1, %lo(.LCPI2_3)(a1)
+	lui	a1, %hi(.LCPI2_4)
+	fld	ft2, %lo(.LCPI2_4)(a1)
+	lui	a1, %hi(.LCPI2_5)
+	fld	ft3, %lo(.LCPI2_5)(a1)
+	fld	ft4, -40(s0)                    # 8-byte Folded Reload
+	fmul.d	ft1, ft4, ft1
+	fdiv.d	ft0, ft0, ft2
+	fadd.d	ft0, ft1, ft0
+	fmul.d	ft0, ft0, ft3
+	fld	ft1, -16(s2)
+	lui	a1, %hi(.LCPI2_6)
+	fld	ft2, %lo(.LCPI2_6)(a1)
+	fld	ft3, -16(s1)
+	lui	a1, %hi(.LCPI2_7)
+	fld	ft4, %lo(.LCPI2_7)(a1)
+	fmul.d	ft2, ft1, ft2
+	lui	a1, %hi(.LCPI2_8)
+	fld	ft5, %lo(.LCPI2_8)(a1)
+	fdiv.d	ft4, ft3, ft4
+	fadd.d	ft2, ft2, ft4
+	fsd	ft0, -16(a0)
+	fmul.d	ft2, ft2, ft5
+	fadd.d	ft1, ft3, ft1
+	fadd.d	ft0, ft1, ft0
+	fadd.d	ft0, ft0, ft2
+	fsd	ft0, -32(s0)
+	lw	a0, -32(s0)
+	lw	a1, -28(s0)
+	j	.LBB2_3
+.LBB2_2:                                # %if-true
+	lui	a1, 261888
+	li	a0, 0
+.LBB2_3:                                # %if-true
+	addi	sp, s0, -48
+	lw	ra, 44(sp)                      # 4-byte Folded Reload
+	lw	s0, 40(sp)                      # 4-byte Folded Reload
+	lw	s1, 36(sp)                      # 4-byte Folded Reload
+	lw	s2, 32(sp)                      # 4-byte Folded Reload
+	addi	sp, sp, 48
+	ret
+.Lfunc_end2:
+	.size	medium.modified_fibonacci, .Lfunc_end2-medium.modified_fibonacci
+	.cfi_endproc
+                                        # -- End function
+	.type	0,@object                       # @"0"
+	.section	.rodata,"a",@progbits
+0:
+	.asciz	"%s\n"
+	.size	0, 4
+
+	.type	1,@object                       # @"1"
+	.p2align	4
+1:
+	.asciz	"1. Fibonacci Sequence"
+	.size	1, 22
+
+	.type	2,@object                       # @"2"
+2:
+	.asciz	"%f\n"
+	.size	2, 4
+
+	.type	3,@object                       # @"3"
+3:
+	.asciz	"%s\n"
+	.size	3, 4
+
+	.type	4,@object                       # @"4"
+	.p2align	4
+4:
+	.asciz	"2. Modified Fibonacci Sequence"
+	.size	4, 31
+
+	.type	5,@object                       # @"5"
+5:
+	.asciz	"%s\n"
+	.size	5, 4
+
+	.type	6,@object                       # @"6"
+	.p2align	4
+6:
+	.asciz	"Modified Fibonacci(15):"
+	.size	6, 24
+
+	.type	7,@object                       # @"7"
+7:
+	.asciz	"%f\n"
+	.size	7, 4
+
+	.type	8,@object                       # @"8"
+8:
+	.asciz	"%s\n"
+	.size	8, 4
+
+	.type	9,@object                       # @"9"
+	.p2align	4
+9:
+	.asciz	"3. More Arithmetics"
+	.size	9, 20
+
+	.type	10,@object                      # @"10"
+10:
+	.asciz	"%d\n"
+	.size	10, 4
+
+	.type	11,@object                      # @"11"
+11:
+	.asciz	"%f\n"
+	.size	11, 4
+
+	.type	12,@object                      # @"12"
+12:
+	.asciz	"%d\n"
+	.size	12, 4
+
+	.type	13,@object                      # @"13"
+13:
+	.asciz	"%f\n"
+	.size	13, 4
+
+	.type	14,@object                      # @"14"
+14:
+	.asciz	"%s\n"
+	.size	14, 4
+
+	.type	15,@object                      # @"15"
+	.p2align	4
+15:
+	.asciz	"4. List Iteration"
+	.size	15, 18
+
+	.type	16,@object                      # @"16"
+16:
+	.asciz	"foo"
+	.size	16, 4
+
+	.type	17,@object                      # @"17"
+17:
+	.asciz	"bar"
+	.size	17, 4
+
+	.type	18,@object                      # @"18"
+18:
+	.asciz	"str"
+	.size	18, 4
+
+	.type	19,@object                      # @"19"
+19:
+	.asciz	"test"
+	.size	19, 5
+
+	.type	20,@object                      # @"20"
+20:
+	.asciz	"halo"
+	.size	20, 5
+
+	.type	21,@object                      # @"21"
+21:
+	.asciz	"%s\n"
+	.size	21, 4
+
+	.section	".note.GNU-stack","",@progbits
