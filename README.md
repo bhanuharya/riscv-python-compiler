@@ -61,7 +61,7 @@ pip install -r requirements.txt
     - To run it simply run the shell script `./start_qemu.sh`
 
 + Setup the build script
-    - The build script in the repository is called `build.py`
+    - The build script in the repository is called `opt_build.py` or `build.py`
     - Inside there are a couple of variables you will need to change
     - Change BUILDROOT_DIR to the ouput/images directory of your buildroot installation
     - Change RISCV_DIR to the location of your riscv installation, it should be in /opt/riscv
