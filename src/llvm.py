@@ -33,10 +33,10 @@ class LLVMBackend():
         self.target_machine = target.create_target_machine()
         self.module = ir.Module(Path(fileName).stem)
         self.module.triple = self.triple
-        self.module.data_layout = 'e-m:e-i32:32-i16:16-i8:8-n32-S32'
+        self.module.data_layout = 'e-m:e-p:32:32-i32:32-i16:16-i8:8-n32-S32'
 
         #self.module.triple = llvm.get_default_triple()
-        self.fn = ir.Function(module=self.module, ftype=ir.FunctionType(return_type=ir.VoidType(), args=()), name='main')
+        self.fn = ir.Function(module=self.module, ftype=ir.FunctionType(return_type=ir.IntType(32), args=()), name='main')
         entry = self.fn.append_basic_block('entry')
         self.builder = ir.IRBuilder(entry)
         
@@ -82,7 +82,7 @@ class LLVMBackend():
         self.globalCount = 0
 
     def emitFile(self):
-        self.builder.ret_void()
+        self.builder.ret(self.getConstant(0, 32))
         llvm_ir = str(self.module)
         
         if PRINT_IR:
