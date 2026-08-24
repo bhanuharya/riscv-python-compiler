@@ -44,6 +44,19 @@ class CheckedBinNode(CheckedNode):
         self.op = op
         super().__init__(base, left.t)
 
+class CheckedUnaryOpNode(CheckedNode):
+    """
+    A unary operation
+
+    -x, +x, not b
+    """
+    operand: CheckedNode
+    op: Any
+    def __init__(self, base: ast.AST, operand: CheckedNode, op: Any):
+        self.operand = operand
+        self.op = op
+        super().__init__(base, operand.t)
+
 class CheckedCallNode(CheckedNode):
     """
     A function call

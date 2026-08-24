@@ -54,7 +54,7 @@ class TypeChecker():
         stringType.methods['__init__'] = defaultInit()
         stringType.parent = genericSlice
 
-        boolType = Class("bool")
+        boolType = BoolType()
         boolType.methods['__init__'] = defaultInit()
         boolType.parent = obj
         
@@ -119,6 +119,8 @@ class TypeChecker():
                 return CheckedModuleNode(node, statements)
             case ast.BinOp():
                 return self.evalBinOp(node)
+            case ast.UnaryOp():
+                return self.evalUnaryOp(node)
             case ast.Expr():
                 return self.evalExpr(node)
             case ast.Assign():
@@ -145,6 +147,8 @@ class TypeChecker():
                 return self.evalFor(node)
             case ast.Break():
                 return self.evalBreak(node)
+            case ast.Pass():
+                return CheckedNode(node, noneType())
             case ast.BoolOp():
                 return self.evalBoolOp(node)
             case ast.List():
@@ -213,6 +217,7 @@ class TypeChecker():
                     Name(id='y')]
         """
         values = []
+        self.errorInfo.lineNo = node.lineno
         for v in node.values:
             evaled = self.evalNode(v)
             if not evaled.t.isBool():
@@ -281,6 +286,10 @@ class TypeChecker():
 
         orelse = self.evalBody(node.orelse)
 
+        # A while loop may run zero iterations and 'break' continues
+        # after the loop, so control flow never provably terminates here.
+        self.bodyTerminated = False
+
         return CheckedIfNode(node, expr, iftrue, orelse)
 
     def evalFor(self, node: ast.For) -> CheckedForNode:
@@ -328,6 +337,10 @@ class TypeChecker():
 
         orelse = self.evalBody(node.orelse)
 
+        # A for loop may run zero iterations, so control flow never
+        # provably terminates here.
+        self.bodyTerminated = False
+
         return CheckedForNode(node, [(id, it.t.getIteratorType())], it, fortrue, orelse)
         
 
@@ -369,7 +382,13 @@ class TypeChecker():
             raiseError(self.errorInfo, f'if expression of type {expr.t} is not a boolean')
 
         iftrue = self.evalBody(node.body)
+        trueTerminated = self.bodyTerminated
         orelse = self.evalBody(node.orelse)
+        elseTerminated = self.bodyTerminated
+
+        # The statement sequence after an if only provably terminates
+        # when both branches exist and both terminate.
+        self.bodyTerminated = trueTerminated and elseTerminated
 
         return CheckedIfNode(node, expr, iftrue, orelse)
 
@@ -405,6 +424,12 @@ class TypeChecker():
                     raiseError(self.errorInfo, f'Undefined type {node.id}')
                     return noneType()
                 return self.types[node.id]
+            case ast.Constant():
+                # `def f() -> None:` parses `None` as ast.Constant(None).
+                if node.value is None:
+                    return noneType()
+                raiseError(self.errorInfo, f'Unknown type node {node}')
+                return noneType()
             case ast.Subscript():
                 if not isinstance(node.value, ast.Name):
                     raiseError(self.errorInfo, f'Unknown subscript type {node.value}')
@@ -468,10 +493,14 @@ class TypeChecker():
         wasReturn = self.currentFnReturn
         self.currentFnReturn = retType
 
-        for stmt in node.body:
-            statements.append(self.evalNode(stmt))
-        
+        statements = self.evalBody(node.body)
+        terminated = self.bodyTerminated
+
         self.currentFnReturn = wasReturn
+
+        self.errorInfo.lineNo = node.lineno
+        if not terminated and retType.name != '<None>':
+            raiseError(self.errorInfo, f'Function {node.name} does not return a value of type {retType} on every path')
 
         self.symbols.pop()
         return CheckedFnDefNode(node, arg_defines, statements, fnType)
@@ -515,6 +544,12 @@ class TypeChecker():
         self.errorInfo.lineNo = node.lineno
         if not fnType.isCallable():
             raiseError(self.errorInfo, f'Cannot call expression of type {fnType}')
+
+        # print is variadic: it accepts any number of arguments. The
+        # backend emits a single space-separated printf call.
+        if intrinName == 'print':
+            argNodes = [self.evalNode(a) for a in node.args]
+            return CheckedCallNode(node, checked, argNodes, fnType, intrinName)
         
         params = fnType.asCallable().args
         gaveCount = len(node.args)
@@ -543,9 +578,33 @@ class TypeChecker():
         left = self.evalNode(node.target)
         right = self.evalNode(node.value)
         if not left.t.isAssignable(right.t):
-            raiseError(self.errorInfo, f'Cannot assign value of type {left.t} to variable of type {right.t}')
+            raiseError(self.errorInfo, f'Cannot assign value of type {right.t} to variable of type {left.t}')
         
         return CheckedBinNode(node, left, right, node.op)
+
+    def evalUnaryOp(self, node: ast.UnaryOp) -> CheckedUnaryOpNode:
+        """
+        Unary operation:
+            -x, +x, not b
+        UnaryOp Node:
+            op=USub()
+            operand=Name(x)
+        """
+        self.errorInfo.lineNo = node.lineno
+        operand = self.evalNode(node.operand)
+
+        if isinstance(node.op, ast.Not):
+            if not operand.t.isBool():
+                raiseError(self.errorInfo, f'Operand of not is of non boolean type {operand.t}')
+            return CheckedUnaryOpNode(node, operand, node.op)
+
+        if isinstance(node.op, (ast.USub, ast.UAdd)):
+            if not (operand.t.isInt() or operand.t.isFloat()):
+                raiseError(self.errorInfo, f'Operand of unary {type(node.op).__name__} is of type {operand.t}, expected int or float')
+            return CheckedUnaryOpNode(node, operand, node.op)
+
+        raiseError(self.errorInfo, f'Unsupported unary operator {type(node.op).__name__}')
+        return CheckedUnaryOpNode(node, operand, node.op)
         
 
     def evalConstant(self, node: ast.Constant) -> CheckedNode:
@@ -558,16 +617,17 @@ class TypeChecker():
 
         t = noneType()
         valueType = type(node.value)
-        if valueType is int:
+        if node.value is None:
+            t = self.types['<None>']
+            return CheckedNode(node, t)
+        if valueType is bool:
+            t = self.types['bool']
+        elif valueType is int:
             t = self.types['int']
         elif valueType is float:
             t = self.types['float']
         elif valueType is str:
             t = self.types['str']
-        elif valueType is bool:
-            t = self.types['bool']
-        elif valueType is None:
-            t = self.types['<None>']
         else:
             raiseError(self.errorInfo, f'Constant of unsupported type {node.value}')
 

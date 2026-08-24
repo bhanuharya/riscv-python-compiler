@@ -1,5 +1,7 @@
 import argparse
+import sys
 from src.compiler import Compiler
+from src.error import CompileError
 import src.constants as constants
 
 
@@ -12,27 +14,31 @@ def main():
     parser = argparse.ArgumentParser(prog='PythonRISCV')
     parser.add_argument('filein')
     parser.add_argument('--bits', '-b', type=int, default=32)
+    parser.add_argument('--output', '-o', default='out.ll',
+                        help='Output LLVM IR file (default: out.ll)')
     args = parser.parse_args()
 
-    # print(args.filein)
-
     constants.REGISTER_SIZE = args.bits
-    compiler = Compiler(args.filein)
+    compiler = Compiler(args.filein, outFile=args.output)
 
-    
     try:
         with open(args.filein) as f:
             if not compiler.parseFile(f, args.filein):
-                return
-        
+                return 1
+
         compiler.typeCheck()
         compiler.compileToLLVM()
+        return 0
     except FileNotFoundError:
-        print(f'File not found: {args.filein}')
+        print(f'File not found: {args.filein}', file=sys.stderr)
+        return 1
     except PermissionError:
-        print(f'Could not open file: {args.filein}')
-
+        print(f'Could not open file: {args.filein}', file=sys.stderr)
+        return 1
+    except CompileError as e:
+        print(e.message, file=sys.stderr)
+        return 1
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

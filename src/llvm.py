@@ -2,6 +2,7 @@ import opcode
 import types
 from .constants import REGISTER_SIZE
 from .checked_nodes import *
+from .error import CompileError
 from pathlib import Path
 
 import llvmlite.ir as ir
@@ -24,7 +25,8 @@ class LLVMBackend():
     symbols: list[dict[str, LLVMSymbol]]
     target_machine: llvm.TargetMachine
     triple: str
-    def __init__(self, fileName: str):
+    def __init__(self, fileName: str, outFile: str = 'out.ll'):
+        self.outFile = outFile
         llvm.initialize()
         llvm.initialize_all_targets()
         llvm.initialize_all_asmprinters()
@@ -84,7 +86,7 @@ class LLVMBackend():
     def emitFile(self):
         self.builder.ret(self.getConstant(0, 32))
         llvm_ir = str(self.module)
-        
+
         if PRINT_IR:
             print(llvm_ir)
 
@@ -102,8 +104,7 @@ class LLVMBackend():
         #module_manager.run(parsed)
         #print(parsed)
 
-        with open('out.ll', 'w+') as f:
-            print("ok")
+        with open(self.outFile, 'w+') as f:
             f.write(str(parsed))
 
     def getConstString(self, string: str) -> ir.Value:
@@ -161,6 +162,9 @@ class LLVMBackend():
             case ast.AugAssign():
                 assert isinstance(node, CheckedBinNode)
                 return self.evalAugAssign(node, lhs)
+            case ast.UnaryOp():
+                assert isinstance(node, CheckedUnaryOpNode)
+                return self.evalUnaryOp(node)
             case ast.Call():
                 assert isinstance(node, CheckedCallNode)
                 return self.evalCall(node, lhs)
@@ -186,6 +190,8 @@ class LLVMBackend():
                 return self.evalWhile(node)
             case ast.Break():
                 return self.evalBreak(node)
+            case ast.Pass():
+                return None
             case ast.BoolOp():
                 assert isinstance(node, CheckedBoolOpNode)
                 return self.evalBoolOp(node)
@@ -279,34 +285,24 @@ class LLVMBackend():
         true = self.fn.append_basic_block('true-' + suffix)
         false = self.fn.append_basic_block('false-' + suffix)
 
-        if node.op == 'and':
-            # Allocate blocks
-            blocks = [ir.Block(None)] * (len(node.vals))
-            for i in range(len(blocks)-1):
-                blocks[i] = self.fn.append_basic_block()
-            blocks[-1] = true
+        # One intermediate block per operand except the last.
+        # For 'and' it evaluates the next operand when the current one was true,
+        # for 'or' when the current one was false.
+        nextBlocks = [self.fn.append_basic_block(f'{suffix}-next-{i}') for i in range(len(node.vals) - 1)]
 
-            # Loop through each value, if it's true go to evaluate the next one
-            # if it's false, go to the false block
-            for i, v in enumerate(node.vals):
-                expr = self.evalNode(v, False)
-                self.builder.cbranch(expr, blocks[i], false)
-                self.builder.position_at_end(blocks[i])
-        else:
-            assert node.op == 'or'
-
-            # Allocate blocks
-            blocks: list[ir.Block]  = [ir.Block(None)] * (len(node.vals))
-            for i in range(len(blocks)-1):
-                blocks[i] = self.fn.append_basic_block()
-            blocks[-1] = false
-
-            # Loop through each value, if it's true go to the true block
-            # if it's false, go to the next one
-            for i, v in enumerate(node.vals):
-                expr = self.evalNode(v, False)
-                self.builder.cbranch(expr, true, blocks[i])
-                self.builder.position_at_end(blocks[i])
+        for i, v in enumerate(node.vals):
+            expr = self.evalNode(v, False)
+            if node.op == 'and':
+                # If this value is true, evaluate the next operand,
+                # the last one goes to the true block.
+                nxt = nextBlocks[i] if i < len(node.vals) - 1 else true
+                self.builder.cbranch(expr, nxt, false)
+            else:
+                assert node.op == 'or'
+                nxt = nextBlocks[i] if i < len(node.vals) - 1 else false
+                self.builder.cbranch(expr, true, nxt)
+            if i < len(node.vals) - 1:
+                self.builder.position_at_end(nextBlocks[i])
         
         after = self.fn.append_basic_block('after-' + suffix)
         # False block stores 0 in result allocation
@@ -446,15 +442,17 @@ class LLVMBackend():
 
         retType = node.t.asCallable().returnType
         if not self.isTerminated():
-            if len(self.builder.basic_block.instructions) != 0 or retType.name == '<None>':
+            if retType.name == '<None>':
                 self.builder.ret_void()
             else:
-                # Have to terminate empty block, potentially created from if/for statement
-                alloc = self.builder.alloca(retType.toLLVM())
+                # The type checker rejects functions that can fall through
+                # without returning a value, so this path is defensive only.
+                # Always return a defined value: the compiler must never
+                # introduce undef.
                 if retType.isLoadable():
-                    self.builder.ret(self.builder.load(alloc))
+                    self.builder.ret(ir.Constant(retType.toLLVM(), 0))
                 else:
-                    self.builder.ret(alloc)
+                    self.builder.ret(ir.Constant(retType.toLLVM(), None))
 
         self.fn = was_fn
         self.builder = was_builder
@@ -605,6 +603,22 @@ class LLVMBackend():
         result = fn(left, right)
         assert result is not None
         return result
+
+    def evalUnaryOp(self, node: CheckedUnaryOpNode) -> ir.Value:
+        val = self.evalNode(node.operand, False)
+        assert val is not None
+
+        match node.op:
+            case ast.USub():
+                if node.t.isFloat():
+                    return self.builder.fneg(val)
+                return self.builder.neg(val)
+            case ast.UAdd():
+                return val
+            case ast.Not():
+                return self.builder.not_(val)
+            case _:
+                raise CompileError(f'Unsupported unary operator {type(node.op).__name__}')
 
     def evalBinOp(self, node: CheckedBinNode, lhs: bool) -> ir.Value:
         left = self.evalNode(node.left, False)
@@ -795,7 +809,10 @@ class LLVMBackend():
             return ir.Constant(node.t.toLLVM(), base.value)
     
     def evalExpr(self, node: CheckedNode, lhs: bool) -> ir.Value | None:
-        assert False
+        # The type checker unwraps ast.Expr, so this node kind should never
+        # reach the backend. Fail with a clear diagnostic instead of a bare
+        # assertion if it ever does.
+        raise CompileError(f'Internal error: expression statement reached the backend: {ast.dump(node.base)}')
     
     def evalName(self, node: CheckedNode, lhs: bool) -> ir.Value:
         assert isinstance(node.base, ast.Name)

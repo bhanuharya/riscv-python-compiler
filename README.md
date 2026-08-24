@@ -45,10 +45,38 @@ src/type_check.py       Static type checking and checked-node construction
 src/llvm.py              LLVM IR generation and RISC-V target setup
 src/type.py             Type and LLVM representation definitions
 src/checked_nodes.py    Checked AST node definitions
+src/reference_evaluator.py  Independent reference evaluator (oracle)
+src/runner.py           Reproducible build/run harness (env-configurable)
+docs/language-spec.md   Normative language specification
+docs/runtime-model.md   Memory layout / calling convention / runtime model
+unittests/              Regression test suite (unittest)
+run_regression_tests.sh Test runner entry point
 tests/                  Language and benchmark programs
 hasil/                  Saved optimization experiment results
 compiler.drawio         High-level compiler flow diagram
 ```
+
+## Language semantics
+
+The language deliberately differs from CPython in several ways (truncating
+integer division, no implicit numeric promotion, `bool` printed as `0`/`1`,
+static typing, 32-bit `int`). The normative specification is
+`docs/language-spec.md`; the runtime model is documented in
+`docs/runtime-model.md`.
+
+## Testing
+
+```bash
+./run_regression_tests.sh
+```
+
+runs the regression suite. It always exercises the frontend, type checker,
+LLVM IR structure, and the reference evaluator, and additionally compiles the
+benchmarks to RISC-V and executes them under QEMU when the toolchain is
+available. The suite cross-checks QEMU output against the reference
+evaluator, and compares optimized vs. unoptimized binaries. Tool paths are
+resolved from `PYRV_OPT`, `PYRV_LLC`, `PYRV_CC`, `PYRV_SYSROOT`, and
+`PYRV_QEMU_USER` (see `src/runner.py`).
 
 ## Supported language subset
 

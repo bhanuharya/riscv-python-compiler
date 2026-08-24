@@ -9,8 +9,8 @@ sliceTypes: dict[str, ir.Type] = dict()
 def noneType() -> Class:
     return Class('<None>')
 
-def boolType() -> Class:
-    res = Class('bool')
+def boolType() -> BoolType:
+    res = BoolType()
     res.methods['__init__'] = defaultInit()
     res.parent = objectType()
     return res
@@ -147,6 +147,18 @@ class Class():
         """
         _ = builder
         return llvmV
+
+
+class BoolType(Class):
+    """
+    bool type. Printed with %d, so the i1 value must be extended to a
+    full integer register width for the variadic printf call.
+    """
+    def __init__(self):
+        super().__init__('bool')
+
+    def getPrintfArgument(self, builder: ir.IRBuilder, llvmV: ir.Value) -> ir.Value:
+        return builder.zext(llvmV, ir.IntType(REGISTER_SIZE))
 
 
 
