@@ -88,6 +88,16 @@ class TestTypeCheckerRejects(unittest.TestCase):
         self.assert_compile_error(
             'a = 1\nb = 2\nc = a < b < 3\n', 'Multiple comperators')
 
+    def test_subscript_assign(self):
+        typecheck_source('a = [1, 2, 3]\na[0] = 5\nprint(a[0])\n')
+
+    def test_nested_subscript_assign(self):
+        typecheck_source('m = [[1, 2], [3, 4]]\nm[0][1] = 10\n')
+
+    def test_subscript_assign_type_mismatch(self):
+        self.assert_compile_error(
+            'a = [1, 2, 3]\na[0] = "x"\n', 'Cannot assign')
+
     def test_return_wrong_type(self):
         self.assert_compile_error(
             'def f() -> int:\n    return 1.5\n', 'Cannot return')
@@ -124,6 +134,18 @@ print(a, b)
         # side(2) must not run: and short-circuits at side(0)==False,
         # or short-circuits at side(1)==True.
         self.assertEqual(out, '1\n0\n1\n0 1\n')
+
+    def test_subscript_assign_aliases(self):
+        # Lists are reference types: writing through one alias must be
+        # visible through another.
+        src = '''a = [1, 2, 3]
+b = a
+b[0] = 99
+print(a[0], a[1], b[2])
+'''
+        out, status = oracle_output(src)
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '99 2 3\n')
 
 
 if __name__ == '__main__':

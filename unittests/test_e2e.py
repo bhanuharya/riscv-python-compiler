@@ -93,6 +93,26 @@ print(add(3, 4))
 '''
         self.check_equivalence(src)
 
+    def test_subscript_assignment(self):
+        # Plain element assignment a[i] = x (the feature this commit adds).
+        src = 'a = [1, 2, 3]\na[0] = 5\nprint(a[0])\n'
+        self.check_equivalence(src)
+
+    def test_subscript_assign_through_alias(self):
+        # Lists are reference types: writing through one alias is visible
+        # through another. This must hold in the backend exactly as in
+        # the oracle.
+        src = 'a = [1, 2, 3]\nb = a\nb[0] = 99\nprint(a[0], a[1], b[2])\n'
+        self.check_equivalence(src)
+
+    def test_nested_subscript_assignment(self):
+        src = 'm = [[1, 2], [3, 4]]\nm[0][1] = 10\nprint(m[0][0], m[0][1], m[1][1])\n'
+        self.check_equivalence(src)
+
+    def test_subscript_assign_in_loop(self):
+        src = 'a = [0, 0, 0]\nfor i in range(3):\n    a[i] = i * 10\nprint(a[0], a[1], a[2])\n'
+        self.check_equivalence(src)
+
 
 @unittest.skipUnless(toolchain_available(), 'RISC-V toolchain not available')
 class TestOptEquivalence(unittest.TestCase):

@@ -636,34 +636,37 @@ class TypeChecker():
     def evalAssign(self, node: ast.Assign) -> CheckedNode:
         """
         a = 10
-        Node:
-            targets=[
-                    Name(a)]
-            value=Constant(value=10)
-
-        Currently we don't support multiple targets
+        my_list[0] = 5
         """
         self.errorInfo.lineNo = node.lineno
-        names = []
-        for t in node.targets:
-            if isinstance(t, ast.Name):
-                names.append(t.id)
-            else:
-                raiseError(self.errorInfo, f'Currently only name assignment is supported, tried to assign to {t}')
-
-        right = self.evalNode(node.value)
-
-        if len(names) > 1:
+        if len(node.targets) > 1:
             raiseError(self.errorInfo, f'Tuples are not currently supported')
 
+        target = node.targets[0]
+        right = self.evalNode(node.value)
+
+        if isinstance(target, ast.Subscript):
+            # Element assignment: my_list[i] = value. The list already exists;
+            # no new symbol is declared. The value must be assignable to the
+            # element type.
+            left = self.evalSubscript(target)
+            self.errorInfo.lineNo = node.lineno
+            if not left.t.isAssignable(right.t):
+                raiseError(self.errorInfo, f'Cannot assign value of type {right.t} to element of type {left.t}')
+            return CheckedAssignNode(node, left, right, [])
+
+        if not isinstance(target, ast.Name):
+            raiseError(self.errorInfo, f'Currently only name and subscript assignment is supported, tried to assign to {target}')
+
+        name = target.id
         declared = list[str]()
-        name = names[0]
         sym = self.findSymbol(name, False)
         if sym is None:
-            self.symbols[-1][names[0]] = right.t
-            declared.append(names[0])
+            self.symbols[-1][name] = right.t
+            declared.append(name)
 
-        left = self.evalNode(node.targets[0])
+        left = self.evalNode(target)
+        self.errorInfo.lineNo = node.lineno
         if not left.t.isAssignable(right.t):
             raiseError(self.errorInfo, f'Cannot assign value of type {right.t} to left-hand side of type {left.t}')
 

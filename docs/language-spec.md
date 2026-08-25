@@ -111,9 +111,9 @@ if items and items[0]:  # rejected: lists have no truthiness
 
 ## 3. Statements and control flow
 
-Supported: assignment, augmented assignment, `if`/`else`, `while`,
-`for`/`else`, `break`, `pass`, function definition, `return`, expression
-statements.
+Supported: assignment, augmented assignment, subscript assignment,
+`if`/`else`, `while`, `for`/`else`, `break`, `pass`, function definition,
+`return`, expression statements.
 
 * `while`/`for` may have an `else` clause, which runs when the loop
   terminates normally (condition false / sequence exhausted) and is skipped
@@ -121,6 +121,9 @@ statements.
 * `break` is only valid inside a loop.
 * A function whose declared return type is not `None` must return a value on
   every path, or compilation fails.
+* `a[i] = x` writes to the `i`-th element of a list; `x` must be assignable
+  to the element type. Lists are reference types, so the write is visible
+  through every alias of that list (see §6).
 
 ## 4. Functions
 
@@ -169,7 +172,8 @@ prints `1`, both unlike CPython.
 * List literals are homogeneous; element type is the type of the first
   element.
 * `list[i]` reads/writes an element. There is **no bounds checking**; an
-  out-of-range index is undefined behavior.
+  out-of-range index is undefined behavior. Writing through one alias is
+  visible through all other aliases, because lists are reference types.
 * Indexing a `str` yields a `char`.
 * Iteration: `for x in items:` where `items` is `list[T]` or `str`.
 * Assignment of a list/string copies the slice descriptor, so both names

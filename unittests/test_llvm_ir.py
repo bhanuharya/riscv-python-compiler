@@ -80,5 +80,24 @@ print(a, b)
         mod.verify()  # raises on failure
 
 
+class TestSubscriptAssignmentIR(unittest.TestCase):
+    """Structural checks for a[i] = x lowering."""
+
+    def test_store_through_gep(self):
+        # The backend must lower a[i] = x to a store through a GEP into
+        # the list data buffer. There must be no undef.
+        src = 'a = [1, 2, 3]\na[0] = 5\nprint(a[0])\n'
+        ir = ir_text_for(src)
+        self.assertIn('getelementptr', ir)
+        self.assertIn('store', ir)
+        self.assertNotIn('undef', ir)
+
+    def test_subscript_assign_module_verifies(self):
+        src = 'a = [1, 2, 3]\nb = a\nb[0] = 99\nprint(a[0], b[1])\n'
+        ir = ir_text_for(src)
+        mod = llvm.parse_assembly(ir)
+        mod.verify()
+
+
 if __name__ == '__main__':
     unittest.main()
