@@ -17,6 +17,7 @@ Environment variable configuration:
     PYRV_READLINE   path to readline.c helper (default: ./readline.c)
     PYRV_RUNTIME_LIB path to a runtime shared dir containing readline.c
                      (used when readline.c is not in the current dir)
+    PYRV_RUNTIME    path to runtime.c (heap allocator) (default: ./runtime.c)
 """
 
 from __future__ import annotations
@@ -89,6 +90,17 @@ def readline_path() -> str:
     return str(local)
 
 
+def runtime_path() -> str:
+    """Locate runtime.c (the C runtime helper: bump allocator)."""
+    override = os.environ.get('PYRV_RUNTIME')
+    if override:
+        return override
+    local = _REPO_ROOT / 'runtime.c'
+    if local.exists():
+        return str(local)
+    return str(local)
+
+
 def _run(cmd: list[str], cwd=None) -> subprocess.CompletedProcess:
     return subprocess.run(
         cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -158,7 +170,7 @@ def compile_program(src: str, out_dir: str, passes: str | None = None,
     sysroot = sysroot_path()
     proc = _run([cc, f'--sysroot={sysroot}', f'-march={RISCV_MARCH}',
                  f'-mabi={RISCV_MABI}', str(opt_bc), readline_path(),
-                 '-o', str(exe)])
+                 runtime_path(), '-o', str(exe)])
     if proc.returncode != 0:
         raise ToolchainError(f'link failed:\n{proc.stderr}')
 

@@ -56,10 +56,17 @@ pointers to descriptors (the function type wraps them in `T*`).
 
 ### 2.3 Lifetimes
 
-Descriptors and buffers are stack-allocated (LLVM `alloca`). There is no
-garbage collection. A buffer referenced by a descriptor must remain live for
-the duration of the function that allocated it. `input()` obtains a buffer
-via `mmap`, which the C `readline` helper allocates.
+* **Slice descriptors** (the `{i32 count, T* data}` struct) are
+  stack-allocated (LLVM `alloca`). They live for the duration of the
+  function that created them.
+* **Element buffers** are heap-allocated via `pyr_alloc` (a bump
+  allocator in `runtime.c`). The heap is a single 16 MB mmap'd region;
+  allocations are 8-byte aligned and never freed individually. This
+  means buffers can safely outlive the function that allocated them
+  (returned strings/lists, lists passed to functions that mutate them,
+  etc.).
+* `input()` obtains a buffer via `mmap` from the C `readline` helper,
+  which is also a heap allocation and has the same lifetime property.
 
 ## 3. Calling convention
 
@@ -70,8 +77,10 @@ it always returns `0` on normal completion (the exit status).
 ## 4. Runtime support (C)
 
 `readline.c` provides the `readline(const char *prompt)` helper used by
-`input()`. `printf`, `memcmp`, `memcpy`, and `strlen` come from libc. The
-module declares these and links against glibc at the final link step.
+`input()`. `runtime.c` provides the bump allocator (`pyr_alloc_init` and
+`pyr_alloc`) used for list/string element buffers. `printf`, `memcmp`,
+`memcpy`, and `strlen` come from libc. The module declares these and links
+against glibc at the final link step.
 
 ## 5. Execution and exit status
 

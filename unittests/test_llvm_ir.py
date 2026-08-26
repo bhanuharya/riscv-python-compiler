@@ -138,5 +138,56 @@ class TestStringConcatIR(unittest.TestCase):
         mod.verify()
 
 
+class TestHeapAllocatorIR(unittest.TestCase):
+    """Structural checks for the heap allocator integration."""
+
+    def test_pyr_alloc_declared(self):
+        src = 'a = [1, 2, 3]\nprint(a[0])\n'
+        ir_text = ir_text_for(src)
+        self.assertIn('declare i8* @"pyr_alloc"', ir_text)
+        self.assertIn('@"pyr_alloc_init"', ir_text)
+
+    def test_pyr_alloc_init_called(self):
+        # The init function must be called at the start of main so the
+        # heap is ready before any allocation.
+        src = 'print(1)\n'
+        ir_text = ir_text_for(src)
+        self.assertIn('call void @"pyr_alloc_init"()', ir_text)
+
+    def test_list_uses_pyr_alloc(self):
+        # A list literal must lower to a call to pyr_alloc, not alloca.
+        src = 'a = [1, 2, 3]\nprint(a[0])\n'
+        ir_text = ir_text_for(src)
+        self.assertIn('call i8* @"pyr_alloc"', ir_text)
+
+    def test_string_concat_uses_pyr_alloc(self):
+        src = 'a = "hi" + "!"\nprint(a)\n'
+        ir_text = ir_text_for(src)
+        self.assertIn('call i8* @"pyr_alloc"', ir_text)
+
+    def test_string_repeat_uses_pyr_alloc(self):
+        src = 'a = "ab" * 3\nprint(a)\n'
+        ir_text = ir_text_for(src)
+        self.assertIn('call i8* @"pyr_alloc"', ir_text)
+
+    def test_range_uses_pyr_alloc(self):
+        src = 'for i in range(3):\n    print(i)\n'
+        ir_text = ir_text_for(src)
+        self.assertIn('call i8* @"pyr_alloc"', ir_text)
+
+    def test_module_verifies_with_heap_alloc(self):
+        # The module must still verify when heap allocation is used.
+        src = '''def make() -> list[int]:
+    a = [1, 2, 3]
+    b = "foo" + "bar"
+    return a
+x = make()
+print(x[0])
+'''
+        ir_text = ir_text_for(src)
+        mod = llvm.parse_assembly(ir_text)
+        mod.verify()
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -148,6 +148,51 @@ print(s)
         src = 'a = "Hello, " + "World!"\nprint(len(a))\n'
         self.check_equivalence(src)
 
+    def test_string_returned_from_function(self):
+        # A function returns a concatenated string. The buffer must
+        # survive the function return (heap-allocated, not stack).
+        src = '''def make() -> str:
+    s = "foo" + "bar" + "baz"
+    return s
+print(make())
+'''
+        self.check_equivalence(src)
+
+    def test_list_returned_from_function(self):
+        # A function builds a list and returns it. The data buffer must
+        # survive the function return.
+        src = '''def make() -> list[int]:
+    a = [10, 20, 30]
+    return a
+x = make()
+print(x[0], x[1], x[2])
+'''
+        self.check_equivalence(src)
+
+    def test_range_returned_from_function(self):
+        src = '''def make() -> list[int]:
+    r = range(4)
+    return r
+x = make()
+for v in x:
+    print(v)
+'''
+        self.check_equivalence(src)
+
+    def test_list_passed_and_mutated(self):
+        # Pass a list to a function that mutates it; mutation visible
+        # after return. This requires heap-allocated buffers.
+        src = '''def fill(a: list[int]):
+    i = 0
+    while i < 3:
+        a[i] = i * 100
+        i = i + 1
+x = [0, 0, 0]
+fill(x)
+print(x[0], x[1], x[2])
+'''
+        self.check_equivalence(src)
+
 
 @unittest.skipUnless(toolchain_available(), 'RISC-V toolchain not available')
 class TestOptEquivalence(unittest.TestCase):

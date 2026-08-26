@@ -73,15 +73,28 @@ class LLVMBackend():
             ir.IntType(REGISTER_SIZE),
         ]), 'memcmp')
 
+        # pyr_alloc_init() -> void
+        pyr_alloc_init = ir.Function(self.module, ir.FunctionType(ir.VoidType(), []), 'pyr_alloc_init')
+        # pyr_alloc(i32 size) -> i8*
+        pyr_alloc = ir.Function(self.module, ir.FunctionType(voidPtr, [
+            ir.IntType(REGISTER_SIZE),
+        ]), 'pyr_alloc')
+
         self.symbols[0]['memcpy'] = LLVMSymbol( FnType([], noneType()),  memcpy)
         self.symbols[0]['printf'] = LLVMSymbol( FnType([], noneType()),  printf)
         self.symbols[0]['readln'] = LLVMSymbol( FnType([], noneType()),  readline)
         self.symbols[0]['memcmp'] = LLVMSymbol( FnType([], noneType()),  memcmp)
+        self.symbols[0]['pyr_alloc'] = LLVMSymbol( FnType([], noneType()), pyr_alloc)
+        self.symbols[0]['pyr_alloc_init'] = LLVMSymbol( FnType([], noneType()), pyr_alloc_init)
         self.symbols[0]['strlen'] = LLVMSymbol( FnType([], noneType()),  strlen)
 
         self.breakBlock: list[ir.Block] = list()
 
         self.globalCount = 0
+
+        # Initialize the heap allocator before any other code runs.
+        # pyr_alloc_init is idempotent and cheap, so this is always safe.
+        self.builder.call(pyr_alloc_init, [])
 
     def emitFile(self):
         self.builder.ret(self.getConstant(0, 32))
@@ -156,9 +169,9 @@ class LLVMBackend():
 
         # Total length
         total = self.builder.add(leftCount, rightCount)
-        # Allocate buffer with room for a null terminator
+        # Allocate buffer (total + 1 for null terminator) on the heap
         totalPlusOne = self.builder.add(total, self.getConstant(1, 32))
-        buffer = self.builder.alloca(ir.IntType(8), totalPlusOne)
+        buffer = self.heapAlloc(ir.IntType(8), totalPlusOne)
 
         # Copy left
         self.doMemcpy(buffer, leftData, leftCount)
@@ -193,9 +206,9 @@ class LLVMBackend():
 
         # Total length
         total = self.builder.mul(count, nClamped)
-        # Allocate buffer with room for a null terminator
+        # Allocate buffer (total + 1 for null terminator) on the heap
         totalPlusOne = self.builder.add(total, self.getConstant(1, 32))
-        buffer = self.builder.alloca(ir.IntType(8), totalPlusOne)
+        buffer = self.heapAlloc(ir.IntType(8), totalPlusOne)
 
         # Loop: for i in 0..nClamped-1, copy `data` into buffer at offset i*count
         idx = self.builder.alloca(ir.IntType(32))
@@ -233,6 +246,35 @@ class LLVMBackend():
         else:
             size = self.getConstant(t.getTypeSize())
             self.doMemcpy(ptr, val, size)
+
+    def _llvmTypeSize(self, t: ir.Type) -> int:
+        """Return the byte size of a primitive LLVM type for heap allocation."""
+        if isinstance(t, ir.IntType):
+            return max(1, t.width // 8)
+        if isinstance(t, ir.PointerType):
+            return 4   # 32-bit target
+        if isinstance(t, ir.FloatType):
+            return 4
+        if isinstance(t, ir.DoubleType):
+            return 8
+        # For struct/array types we don't allocate; fall back to 1.
+        return 1
+
+    def heapAlloc(self, elemType: ir.Type, count: ir.Value) -> ir.Value:
+        """
+        Allocate `count` elements of `elemType` on the heap and return a
+        typed pointer (`elemType*`). The buffer survives function returns.
+
+        `count` may be a compile-time int or a runtime `ir.Value` (i32).
+        """
+        elemSize = self._llvmTypeSize(elemType)
+        if isinstance(count, int):
+            size = self.getConstant(count * elemSize, 32)
+        else:
+            size = self.builder.mul(count, self.getConstant(elemSize, 32))
+        raw = self.builder.call(self.symbols[0]['pyr_alloc'].ptr, [size])
+        # Bitcast i8* -> elemType*
+        return self.builder.bitcast(raw, ir.PointerType(elemType))
 
 
     def evalNode(self, node: CheckedNode, lhs: bool) -> ir.Value | None:
@@ -353,8 +395,9 @@ class LLVMBackend():
         if len(vals) == 0:
             return listV
 
-        # Allocate a buffer for the list data
-        data = self.builder.alloca(node.t.asList().base.toLLVM(), len(vals))
+        # Allocate a buffer for the list data (heap-allocated so it survives
+        # function returns).
+        data = self.heapAlloc(node.t.asList().base.toLLVM(), len(vals))
 
         # list.data = allocated buffer
         dataPtr = self.builder.gep(listV, [zero, one])
@@ -814,7 +857,7 @@ class LLVMBackend():
         one = self.getConstant(1, 32)
 
         count = self.evalNode(args[0], False)
-        elems = self.builder.alloca(intType().toLLVM(), count)
+        elems = self.heapAlloc(intType().toLLVM(), count)
         idx =  self.builder.alloca(intType().toLLVM())
         self.builder.store(self.getConstant(0), idx)
 

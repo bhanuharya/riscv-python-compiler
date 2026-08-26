@@ -193,7 +193,13 @@ class FnType(Class):
             else:
                 args.append(arg.toLLVM())
 
-        self.llvmTypeCached = ir.FunctionType(self.returnType.toLLVM(), args)
+        # Non-loadable return types (str, list[T]) are returned by pointer
+        # since LLVM does not return structs by value in the simple calling
+        # convention used here.
+        retType = self.returnType.toLLVM()
+        if not self.returnType.isLoadable():
+            retType = ir.PointerType(retType)
+        self.llvmTypeCached = ir.FunctionType(retType, args)
         return self.llvmTypeCached
 
     def getTypeSize(self) -> int:

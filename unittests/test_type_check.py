@@ -241,6 +241,98 @@ while i < 4:
         # The input prompt "> " is printed before the result.
         self.assertEqual(out, '> hi!\n')
 
+    def test_concat_in_function_returned(self):
+        # A function returns a concatenated string. The buffer must
+        # survive the function return (heap-allocated, not stack).
+        out, status = oracle_output('''def make() -> str:
+    s = "foo" + "bar" + "baz"
+    return s
+
+print(make())
+''')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, 'foobarbaz\n')
+
+    def test_repeat_in_function_returned(self):
+        out, status = oracle_output('''def make() -> str:
+    s = "ab" * 5
+    return s
+
+print(make())
+''')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, 'ababababab\n')
+
+    def test_list_in_function_returned(self):
+        # A function builds a list literal and returns it. The data
+        # buffer must survive the function return.
+        out, status = oracle_output('''def make() -> list[int]:
+    a = [10, 20, 30]
+    return a
+
+x = make()
+print(x[0], x[1], x[2])
+''')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '10 20 30\n')
+
+    def test_range_in_function_returned(self):
+        out, status = oracle_output('''def make() -> list[int]:
+    r = range(4)
+    return r
+
+x = make()
+i = 0
+for v in x:
+    print(v)
+    i = i + 1
+''')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '0\n1\n2\n3\n')
+
+    def test_list_mutation_across_function_call(self):
+        # Build a list, pass it to a function that mutates it, verify
+        # the mutation is visible after the function returns.
+        out, status = oracle_output('''def fill(a: list[int]):
+    i = 0
+    while i < 3:
+        a[i] = i * 100
+        i = i + 1
+
+x = [0, 0, 0]
+fill(x)
+print(x[0], x[1], x[2])
+''')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '0 100 200\n')
+
+    def test_list_returned_then_mutated(self):
+        # A function returns a list, the caller mutates it.
+        out, status = oracle_output('''def make() -> list[int]:
+    a = [1, 2, 3, 4, 5]
+    return a
+
+x = make()
+x[2] = 99
+print(x[0], x[1], x[2], x[3], x[4])
+''')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '1 2 99 4 5\n')
+
+    def test_concat_multiple_function_calls(self):
+        # Multiple calls to a function that returns a string: each call
+        # must produce a fresh, independent buffer.
+        out, status = oracle_output('''def greet(name: str) -> str:
+    return "Hello, " + name + "!"
+
+a = greet("Alice")
+b = greet("Bob")
+print(a)
+print(b)
+''')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, 'Hello, Alice!\nHello, Bob!\n')
+
 
 if __name__ == '__main__':
     unittest.main()
