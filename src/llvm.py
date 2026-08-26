@@ -803,11 +803,28 @@ class LLVMBackend():
         return self.doBinOp(node.left.t, left, right, node.op)
         
 
+    def declareSymbol(self, name: str, t: Class) -> ir.Value:
+        """Allocate storage for a newly-declared variable.
+
+        At module scope (only the global builtins frame is on the symbol
+        stack) the storage must be a LLVM global so function bodies can
+        reach it.  Inside functions we still use stack allocas.
+        """
+        if len(self.symbols) == 1:
+            llvmT = t.toLLVM()
+            globalV = ir.GlobalVariable(self.module, llvmT, name=f'g_{name}')
+            globalV.linkage = 'internal'
+            globalV.initializer = ir.Constant(llvmT, None)
+            self.symbols[-1][name] = LLVMSymbol(t, globalV)
+            return globalV
+        alloc = self.builder.alloca(t.toLLVM())
+        self.symbols[-1][name] = LLVMSymbol(t, alloc)
+        return alloc
+
     def evalAssign(self, node: CheckedAssignNode, lhs: bool) -> ir.Value:
         for sym in node.declaredSymbols:
-            value = self.builder.alloca(node.t.toLLVM())
-            self.symbols[-1][sym] = LLVMSymbol(node.t, value)
-        
+            self.declareSymbol(sym, node.t)
+
         ptr = self.evalNode(node.left, True)
         val = self.evalNode(node.right, False)
         assert ptr is not None

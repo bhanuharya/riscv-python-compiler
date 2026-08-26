@@ -93,6 +93,61 @@ print(add(3, 4))
 '''
         self.check_equivalence(src)
 
+    def test_global_int_read_from_function(self):
+        # A function body must be able to read a module-scope int.
+        src = '''
+c = 10
+def get() -> int:
+    return c
+print(c)
+print(get())
+'''
+        self.check_equivalence(src)
+
+    def test_global_int_write_from_function(self):
+        # A function body must be able to mutate a module-scope int, and
+        # the mutation must be visible to subsequent reads (including
+        # in main and other functions).
+        src = '''
+counter = 0
+def bump() -> int:
+    counter = counter + 1
+    return counter
+
+print(counter)
+print(bump())
+print(bump())
+print(counter)
+'''
+        self.check_equivalence(src)
+
+    def test_global_list_shared_with_function(self):
+        # Lists are reference types; a function mutating a global list
+        # must be visible to the caller and to other functions.
+        src = '''
+items = [1, 2, 3]
+def push(x: int) -> None:
+    items[0] = x
+def first() -> int:
+    return items[0]
+print(items[0], items[1], items[2])
+push(99)
+print(items[0], items[1], items[2])
+print(first())
+'''
+        self.check_equivalence(src)
+
+    def test_global_string_read_from_function(self):
+        src = '''
+greeting = "hello"
+def greet() -> str:
+    return greeting + "!"
+print(greeting)
+print(greet())
+'''
+        self.check_equivalence(src)
+
+
     def test_subscript_assignment(self):
         # Plain element assignment a[i] = x (the feature this commit adds).
         src = 'a = [1, 2, 3]\na[0] = 5\nprint(a[0])\n'

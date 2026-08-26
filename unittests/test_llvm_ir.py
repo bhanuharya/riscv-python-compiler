@@ -87,6 +87,49 @@ class TestSubscriptAssignmentIR(unittest.TestCase):
         mod.verify()
 
 
+class TestGlobalVariablesIR(unittest.TestCase):
+    """Module-scope variables must be lowered to LLVM globals so that
+    function bodies can read and write them."""
+
+    def test_module_var_is_global(self):
+        src = 'c = 10\nprint(c)\n'
+        ir = ir_text_for(src)
+        # The variable must be a module-level @global, not an alloca in
+        # main. (llvmlite quotes global names that contain a dot, but
+        # plain identifiers are emitted unquoted.)
+        self.assertRegex(ir, r'@"?g_c"?\s*=\s*internal global i32')
+        self.assertNotIn('alloca i32', ir.split('define i32 @"main"()', 1)[1])
+
+    def test_function_reads_global(self):
+        src = '''
+c = 10
+def get() -> int:
+    return c
+print(get())
+'''
+        ir = ir_text_for(src)
+        mod = llvm.parse_assembly(ir)
+        mod.verify()
+        # The function body must reference the @g_c global.
+        self.assertRegex(ir, r'load i32, i32\* @"?g_c"?')
+
+    def test_function_writes_global(self):
+        src = '''
+counter = 0
+def bump() -> int:
+    counter = counter + 1
+    return counter
+print(bump())
+print(counter)
+'''
+        ir = ir_text_for(src)
+        mod = llvm.parse_assembly(ir)
+        mod.verify()
+        # The function body must store into the @g_counter global.
+        self.assertIn('store i32', ir)
+        self.assertIn('g_counter', ir)
+
+
 class TestStringConcatIR(unittest.TestCase):
     """Structural checks for string concat/repeat lowering."""
 
