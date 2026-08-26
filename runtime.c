@@ -2,7 +2,8 @@
  * pyrv runtime library
  *
  * Provides a simple bump allocator for heap-allocated buffers (list element
- * arrays, concatenated/repeated string buffers, etc.).
+ * arrays, concatenated/repeated string buffers, etc.) plus an optional
+ * subscript bounds-check helper.
  *
  * Design notes:
  *   - The heap is a single mmap'd region, allocated lazily on first use.
@@ -15,6 +16,8 @@
  */
 
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
@@ -57,4 +60,21 @@ void *pyr_alloc(uint32_t size)
     void *result = (void *)pyr_bump;
     pyr_bump += aligned;
     return result;
+}
+
+/*
+ * Bounds check for subscript access. Called before every list/string
+ * element access when the program is compiled with --bounds-check.
+ * Negative indices are rejected: unlike CPython, the language does not
+ * support them (see docs/language-spec.md).
+ * On violation prints a diagnostic to stderr and exits with status 1,
+ * mirroring an uncaught Python IndexError.
+ */
+void pyr_bounds_check(int32_t index, uint32_t count)
+{
+    if (index < 0 || (uint32_t)index >= count) {
+        fprintf(stderr, "IndexError: index %d out of range for size %u\n",
+                index, (unsigned)count);
+        exit(1);
+    }
 }

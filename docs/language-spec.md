@@ -193,9 +193,13 @@ concatenated, or stored like any other string.
 * A string is a length + `i8*` buffer; a list is a count + element buffer.
 * List literals are homogeneous; element type is the type of the first
   element.
-* `list[i]` reads/writes an element. There is **no bounds checking**; an
-  out-of-range index is undefined behavior. Writing through one alias is
-  visible through all other aliases, because lists are reference types.
+* `list[i]` reads/writes an element. By default there is **no bounds
+  checking**: an out-of-range index is undefined behavior. When the program
+  is compiled with `--bounds-check`, every list/string subscript emits a
+  runtime check (`pyr_bounds_check`): an out-of-range or negative index
+  prints `IndexError: index N out of range for size M` to stderr and exits
+  with status 1 (see §7). Writing through one alias is visible through all
+  other aliases, because lists are reference types.
 * Indexing a `str` yields a `char`.
 * Iteration: `for x in items:` where `items` is `list[T]` or `str`.
 * Assignment of a list/string copies the slice descriptor, so both names
@@ -228,6 +232,8 @@ concatenated, or stored like any other string.
 7. **32-bit `int`** with wraparound, not arbitrary precision.
 8. **No runtime errors for** division-by-zero (int), out-of-range indexing,
    or out-of-range `int(float)` — these are undefined behavior.
+   Exception: with `--bounds-check`, out-of-range/negative subscripts are a
+   checked runtime error (stderr diagnostic + exit status 1).
 
 ## 9. Runtime model
 

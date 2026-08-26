@@ -117,7 +117,8 @@ def _check_tool(path: str, name: str):
 
 
 def compile_program(src: str, out_dir: str, passes: str | None = None,
-                    name: str | None = None) -> dict[str, str]:
+                    name: str | None = None,
+                    bounds_check: bool = False) -> dict[str, str]:
     """
     Compile a .py source through IR -> opt -> llc -> link.
 
@@ -137,7 +138,10 @@ def compile_program(src: str, out_dir: str, passes: str | None = None,
     # Frontend (the compiler itself). Run in-process via a small helper
     # script to avoid importing from the harness's own cwd issues.
     frontend = _REPO_ROOT / 'main.py'
-    proc = _run([os.sys.executable, str(frontend), src, '-o', str(ir)])
+    frontend_cmd = [os.sys.executable, str(frontend), src, '-o', str(ir)]
+    if bounds_check:
+        frontend_cmd.append('--bounds-check')
+    proc = _run(frontend_cmd)
     if proc.returncode != 0:
         raise ToolchainError(f'frontend failed:\n{proc.stderr}')
 

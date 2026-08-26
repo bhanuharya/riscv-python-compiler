@@ -3,6 +3,7 @@
 import unittest
 
 from src.error import CompileError
+from src.reference_evaluator import InterpretError
 
 from unittests.helpers import typecheck_source, oracle_output
 
@@ -429,6 +430,26 @@ print(label(42))
 ''')
         self.assertEqual(status, 0)
         self.assertEqual(out, 'v=42\n')
+
+    def test_oob_read_raises(self):
+        with self.assertRaises(InterpretError) as cm:
+            oracle_output('a = [1, 2, 3]\nb = a[7]\n')
+        self.assertIn('IndexError', str(cm.exception))
+
+    def test_oob_write_raises(self):
+        with self.assertRaises(InterpretError):
+            oracle_output('a = [1, 2, 3]\na[5] = 0\n')
+
+    def test_negative_index_raises(self):
+        # The language does not support negative indices.
+        with self.assertRaises(InterpretError) as cm:
+            oracle_output('a = [1, 2, 3]\nb = a[-1]\n')
+        self.assertIn('IndexError', str(cm.exception))
+
+    def test_string_oob_raises(self):
+        with self.assertRaises(InterpretError) as cm:
+            oracle_output('s = "hi"\nc = s[5]\n')
+        self.assertIn('IndexError', str(cm.exception))
 
 
 if __name__ == '__main__':

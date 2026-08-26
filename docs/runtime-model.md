@@ -78,7 +78,10 @@ it always returns `0` on normal completion (the exit status).
 
 `readline.c` provides the `readline(const char *prompt)` helper used by
 `input()`. `runtime.c` provides the bump allocator (`pyr_alloc_init` and
-`pyr_alloc`) used for list/string element buffers. `printf`, `memcmp`,
+`pyr_alloc`) used for list/string element buffers, plus
+`pyr_bounds_check(index, count)` — called before every subscript when the
+program is compiled with `--bounds-check`; on violation it prints an
+`IndexError` to stderr and exits with status 1. `printf`, `memcmp`,
 `memcpy`, and `strlen` come from libc. The module declares these and links
 against glibc at the final link step.
 

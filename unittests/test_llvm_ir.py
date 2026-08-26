@@ -1,26 +1,14 @@
 """LLVM backend / IR structural regression tests."""
 
-import ast
 import unittest
 
 import llvmlite.binding as llvm
 
-from src.type_check import TypeChecker
+from unittests.helpers import ir_text_for
 
 llvm.initialize()
 llvm.initialize_all_targets()
 llvm.initialize_all_asmprinters()
-
-
-def ir_text_for(src: str, name: str = 'test') -> str:
-    """Run the frontend+backend and return the emitted LLVM IR text."""
-    tc = TypeChecker(name)
-    checked = tc.evalNode(ast.parse(src, filename=name))
-    from src.llvm import LLVMBackend
-    backend = LLVMBackend(name, outFile='/dev/null')
-    backend.evalNode(checked, False)
-    backend.emitFile()
-    return str(backend.module)
 
 
 class TestTargetAndLayout(unittest.TestCase):
@@ -191,6 +179,51 @@ d = bool(4)
 print(a, b, c, d)
 '''
         ir_text = ir_text_for(src)
+        mod = llvm.parse_assembly(ir_text)
+        mod.verify()
+
+
+class TestBoundsCheckIR(unittest.TestCase):
+    """Structural checks for the --bounds-check flag."""
+
+    def test_no_check_by_default(self):
+        # Without the flag no bounds-check call may appear (the declaration
+        # is always present but unused).
+        src = 'a = [1, 2, 3]\nprint(a[1])\n'
+        ir_text = ir_text_for(src)
+        self.assertNotIn('call void @"pyr_bounds_check"', ir_text)
+
+    def test_declared_when_enabled(self):
+        src = 'a = [1, 2, 3]\nprint(a[1])\n'
+        ir_text = ir_text_for(src, bounds_check=True)
+        self.assertIn('declare void @"pyr_bounds_check"', ir_text)
+
+    def test_load_checked(self):
+        src = 'a = [1, 2, 3]\nprint(a[1])\n'
+        ir_text = ir_text_for(src, bounds_check=True)
+        self.assertIn('call void @"pyr_bounds_check"', ir_text)
+        # The count is loaded from the descriptor (field 0) for the check.
+        self.assertIn('getelementptr', ir_text)
+
+    def test_store_checked(self):
+        src = 'a = [1, 2, 3]\na[2] = 9\nprint(a[2])\n'
+        ir_text = ir_text_for(src, bounds_check=True)
+        # Two accesses: the subscript store and the print load.
+        self.assertEqual(ir_text.count('call void @"pyr_bounds_check"'), 2)
+
+    def test_string_subscript_checked(self):
+        src = 's = "hey"\nprint(s[1])\n'
+        ir_text = ir_text_for(src, bounds_check=True)
+        self.assertIn('call void @"pyr_bounds_check"', ir_text)
+
+    def test_module_verifies_with_bounds_check(self):
+        src = '''a = [10, 20]
+s = "abc"
+i = 1
+a[i] = a[0] + len(s)
+print(a[i], s[i])
+'''
+        ir_text = ir_text_for(src, bounds_check=True)
         mod = llvm.parse_assembly(ir_text)
         mod.verify()
 

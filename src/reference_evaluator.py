@@ -196,6 +196,7 @@ class ReferenceEvaluator:
             assert isinstance(target, CheckedSubscriptNode)
             lst = self._eval_expr(target.op)
             idx = self._eval_expr(target.subscript)
+            self._check_index(idx, len(lst))
             lst[idx] = value
             return
         raise InterpretError(f'Unsupported assignment target: {ast.dump(base)}')
@@ -290,8 +291,18 @@ class ReferenceEvaluator:
             assert isinstance(expr, CheckedSubscriptNode)
             lst = self._eval_expr(expr.op)
             idx = self._eval_expr(expr.subscript)
+            self._check_index(idx, len(lst))
             return lst[idx]
         raise InterpretError(f'Unsupported expression: {ast.dump(base)}')
+
+    def _check_index(self, idx: int, count: int):
+        """
+        Reject out-of-range subscripts the way the runtime bounds check does
+        (negative indices are not supported by the language).
+        """
+        if idx < 0 or idx >= count:
+            raise InterpretError(
+                f'IndexError: index {idx} out of range for size {count}')
 
     def _eval_binop(self, node: CheckedBinNode):
         left = self._eval_expr(node.left)
@@ -346,6 +357,7 @@ class ReferenceEvaluator:
             assert isinstance(target, CheckedSubscriptNode)
             lst = self._eval_expr(target.op)
             idx = self._eval_expr(target.subscript)
+            self._check_index(idx, len(lst))
             lst[idx] = res
             return res
         raise InterpretError(f'Unsupported augmented assignment target: {ast.dump(base)}')

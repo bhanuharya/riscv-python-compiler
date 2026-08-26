@@ -242,6 +242,10 @@ This writes:
 out.ll
 ```
 
+Pass `--bounds-check` to emit runtime bounds checks for list/string
+subscripts: an out-of-range or negative index prints an `IndexError` to
+stderr and exits with status 1 instead of being undefined behavior.
+
 To compile the generated IR with the host Clang for a quick smoke test:
 
 ```bash

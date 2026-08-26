@@ -32,6 +32,17 @@ def typecheck_source(src: str, name: str = 'test.py'):
     return tc.evalNode(root)
 
 
+def ir_text_for(src: str, name: str = 'test', bounds_check: bool = False) -> str:
+    """Run the frontend+backend and return the emitted LLVM IR text."""
+    tc = TypeChecker(name)
+    checked = tc.evalNode(ast.parse(src, filename=name))
+    from src.llvm import LLVMBackend
+    backend = LLVMBackend(name, outFile='/dev/null', boundsCheck=bounds_check)
+    backend.evalNode(checked, False)
+    backend.emitFile()
+    return str(backend.module)
+
+
 def oracle_output(src: str, stdin: str | None = None) -> tuple[str, int]:
     """
     Run the reference evaluator on `src`.
@@ -55,13 +66,15 @@ def _write_temp(src: str, name: str) -> str:
 
 
 def qemu_output(src: str, passes: str | None = DEFAULT_PASSES,
-                stdin: str | None = None, timeout: int = 120) -> tuple[int, str]:
+                stdin: str | None = None, timeout: int = 120,
+                bounds_check: bool = False) -> tuple[int, str]:
     """Compile `src` and run it under QEMU. Returns (exit_code, stdout)."""
     py = _write_temp(src, 'prog.py')
     try:
         tmp = tempfile.mkdtemp(prefix='pyrv-run-')
         try:
-            arts = runner.compile_program(py, tmp, passes=passes, name='prog')
+            arts = runner.compile_program(py, tmp, passes=passes, name='prog',
+                                          bounds_check=bounds_check)
             code, out, _err = runner.run_qemu(arts['exe'], stdin=stdin,
                                               timeout=timeout)
             return code, out

@@ -25,7 +25,11 @@ class LLVMBackend():
     symbols: list[dict[str, LLVMSymbol]]
     target_machine: llvm.TargetMachine
     triple: str
-    def __init__(self, fileName: str, outFile: str = 'out.ll'):
+    def __init__(self, fileName: str, outFile: str = 'out.ll', boundsCheck: bool = False):
+        self.outFile = outFile
+        # When enabled every list/string subscript emits a runtime bounds
+        # check (pyr_bounds_check) before the element access.
+        self.boundsCheck = boundsCheck
         self.outFile = outFile
         llvm.initialize()
         llvm.initialize_all_targets()
@@ -86,6 +90,12 @@ class LLVMBackend():
             ir.IntType(8).as_pointer(),
         ], True), 'sprintf')
 
+        # pyr_bounds_check(i32 index, i32 count) -> void
+        pyr_bounds_check = ir.Function(self.module, ir.FunctionType(ir.VoidType(), [
+            ir.IntType(REGISTER_SIZE),
+            ir.IntType(REGISTER_SIZE),
+        ]), 'pyr_bounds_check')
+
         self.symbols[0]['memcpy'] = LLVMSymbol( FnType([], noneType()),  memcpy)
         self.symbols[0]['printf'] = LLVMSymbol( FnType([], noneType()),  printf)
         self.symbols[0]['readln'] = LLVMSymbol( FnType([], noneType()),  readline)
@@ -93,6 +103,7 @@ class LLVMBackend():
         self.symbols[0]['pyr_alloc'] = LLVMSymbol( FnType([], noneType()), pyr_alloc)
         self.symbols[0]['pyr_alloc_init'] = LLVMSymbol( FnType([], noneType()), pyr_alloc_init)
         self.symbols[0]['sprintf'] = LLVMSymbol( FnType([], noneType()), sprintf)
+        self.symbols[0]['pyr_bounds_check'] = LLVMSymbol( FnType([], noneType()), pyr_bounds_check)
         self.symbols[0]['strlen'] = LLVMSymbol( FnType([], noneType()),  strlen)
 
         self.breakBlock: list[ir.Block] = list()
@@ -359,7 +370,15 @@ class LLVMBackend():
         zero = self.getConstant(0, 32)
         one = self.getConstant(1, 32)
 
-        # @TODO: bounds checking
+        # Optional runtime bounds check (enabled with --bounds-check).
+        # Both lists and strings share the {count, data} descriptor layout,
+        # so the count is always at field 0. Negative indices are rejected
+        # because the language does not support them.
+        if self.boundsCheck:
+            countPtr = self.builder.gep(op, [zero, zero])
+            count = self.builder.load(countPtr)
+            self.builder.call(self.symbols[0]['pyr_bounds_check'].ptr, [idx, count])
+
         dataPtr = self.builder.gep(op, [zero, one])
         data = self.builder.load(dataPtr)
         elem = self.builder.gep(data, [idx])

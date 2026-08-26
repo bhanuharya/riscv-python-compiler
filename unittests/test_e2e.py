@@ -242,6 +242,45 @@ print(a, b, c, d)
 '''
         self.check_equivalence(src)
 
+    def test_bounds_check_inbounds_equivalent(self):
+        # With --bounds-check every in-range access behaves identically.
+        src = '''a = [1, 2, 3]
+s = "hey"
+a[0] = 10
+print(a[0], a[1], a[2])
+print(s[0], s[2])
+i = 0
+while i < 3:
+    print(a[i])
+    i = i + 1
+'''
+        expected, exp_status = oracle_output(src)
+        code, actual = qemu_output(src, bounds_check=True)
+        self.assertEqual(exp_status, 0)
+        self.assertEqual(code, 0)
+        self.assertEqual(actual, expected.encode())
+
+    def test_bounds_check_oob_exits_nonzero(self):
+        # An out-of-range read under --bounds-check must exit with status 1,
+        # print nothing to stdout, and report an IndexError on stderr.
+        import shutil
+        import tempfile
+        from pathlib import Path
+        from unittests.helpers import runner, _write_temp
+        src = 'a = [1, 2, 3]\nb = a[7]\nprint(b)\n'
+        py = _write_temp(src, 'oob.py')
+        tmp = tempfile.mkdtemp(prefix='pyrv-oob-')
+        try:
+            arts = runner.compile_program(py, tmp, name='prog',
+                                          bounds_check=True)
+            code, out, err = runner.run_qemu(arts['exe'])
+            self.assertEqual(code, 1)
+            self.assertEqual(out, b'')
+            self.assertIn(b'IndexError', err)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+            shutil.rmtree(Path(py).parent, ignore_errors=True)
+
 
 @unittest.skipUnless(toolchain_available(), 'RISC-V toolchain not available')
 class TestOptEquivalence(unittest.TestCase):
