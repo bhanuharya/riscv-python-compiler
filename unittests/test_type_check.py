@@ -29,6 +29,15 @@ print(x, y, z, d)
     def test_pass(self):
         typecheck_source('def f():\n    pass\n')
 
+    def test_string_concat(self):
+        typecheck_source('a = "hi"\nb = a + "!"\nprint(b)\n')
+
+    def test_string_repeat_str_int(self):
+        typecheck_source('a = "ab" * 3\nprint(a)\n')
+
+    def test_string_repeat_int_str(self):
+        typecheck_source('a = 3 * "ab"\nprint(a)\n')
+
     def test_void_function_returns_none(self):
         src = '''
 def f() -> None:
@@ -102,6 +111,18 @@ class TestTypeCheckerRejects(unittest.TestCase):
         self.assert_compile_error(
             'def f() -> int:\n    return 1.5\n', 'Cannot return')
 
+    def test_str_plus_int_rejected(self):
+        self.assert_compile_error('a = "x" + 1\n', 'binary operation')
+
+    def test_str_plus_list_rejected(self):
+        self.assert_compile_error('a = [1]\nb = "x" + a\n', 'binary operation')
+
+    def test_str_times_float_rejected(self):
+        self.assert_compile_error('a = "x" * 1.5\n', 'binary operation')
+
+    def test_int_times_list_rejected(self):
+        self.assert_compile_error('a = [1]\nb = 2 * a\n', 'binary operation')
+
 
 class TestOracleSemantics(unittest.TestCase):
     def test_int_division_is_truncating(self):
@@ -146,6 +167,79 @@ print(a[0], a[1], b[2])
         out, status = oracle_output(src)
         self.assertEqual(status, 0)
         self.assertEqual(out, '99 2 3\n')
+
+    def test_string_concat(self):
+        out, status = oracle_output(
+            'a = "Hello, "\nb = "World!"\nprint(a + b)\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, 'Hello, World!\n')
+
+    def test_string_concat_empty(self):
+        out, status = oracle_output(
+            'a = "x" + ""\nb = "" + "y"\nc = "" + ""\nprint(a, b, c)\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, 'x y \n')
+
+    def test_string_concat_chained(self):
+        out, status = oracle_output(
+            'a = "a" + "b" + "c" + "d"\nprint(a)\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, 'abcd\n')
+
+    def test_string_repeat_str_int(self):
+        out, status = oracle_output('print("ab" * 3)\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, 'ababab\n')
+
+    def test_string_repeat_int_str(self):
+        out, status = oracle_output('print(3 * "ab")\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, 'ababab\n')
+
+    def test_string_repeat_zero(self):
+        out, status = oracle_output('print("ab" * 0)\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '\n')
+
+    def test_string_repeat_negative(self):
+        # CPython: "ab" * -1 == ""
+        out, status = oracle_output('print("ab" * -1)\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '\n')
+
+    def test_string_repeat_one(self):
+        out, status = oracle_output('print("test" * 1)\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, 'test\n')
+
+    def test_string_repeat_empty_string(self):
+        # "" * 5 == "" (count is 0, loop runs but copies 0 bytes)
+        out, status = oracle_output('print("" * 5)\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '\n')
+
+    def test_string_concat_then_len(self):
+        out, status = oracle_output(
+            'a = "Hello, " + "World!"\nprint(len(a))\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '13\n')
+
+    def test_string_repeat_in_loop(self):
+        out, status = oracle_output('''i = 0
+while i < 4:
+    print("x" * i)
+    i = i + 1
+''')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '\nx\nxx\nxxx\n')
+
+    def test_string_concat_with_input(self):
+        # Verifies concat works on a non-literal (input) string
+        out, status = oracle_output(
+            'a = input("> ")\nb = a + "!"\nprint(b)\n', stdin='hi\n')
+        self.assertEqual(status, 0)
+        # The input prompt "> " is printed before the result.
+        self.assertEqual(out, '> hi!\n')
 
 
 if __name__ == '__main__':

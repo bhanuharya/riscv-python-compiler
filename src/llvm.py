@@ -133,6 +133,100 @@ class LLVMBackend():
         memcpy = self.symbols[0]['memcpy']
         self.builder.call(memcpy.ptr, [dst, src, size, ir.Constant(ir.IntType(1), 0)])
 
+    def doStringConcat(self, left: ir.Value, right: ir.Value) -> ir.Value:
+        """
+        Implements `left + right` for two strings.
+        `left` and `right` are `%str*` (pointers to {i32 count, i8* data}).
+        Returns a new `%str*` pointing to a fresh, null-terminated buffer.
+        """
+        zero = self.getConstant(0, 32)
+        one = self.getConstant(1, 32)
+
+        # Load count and data from left
+        leftCountPtr = self.builder.gep(left, [zero, zero])
+        leftCount = self.builder.load(leftCountPtr)
+        leftDataPtr = self.builder.gep(left, [zero, one])
+        leftData = self.builder.load(leftDataPtr)
+
+        # Load count and data from right
+        rightCountPtr = self.builder.gep(right, [zero, zero])
+        rightCount = self.builder.load(rightCountPtr)
+        rightDataPtr = self.builder.gep(right, [zero, one])
+        rightData = self.builder.load(rightDataPtr)
+
+        # Total length
+        total = self.builder.add(leftCount, rightCount)
+        # Allocate buffer with room for a null terminator
+        totalPlusOne = self.builder.add(total, self.getConstant(1, 32))
+        buffer = self.builder.alloca(ir.IntType(8), totalPlusOne)
+
+        # Copy left
+        self.doMemcpy(buffer, leftData, leftCount)
+        # Copy right at offset leftCount
+        offsetBuffer = self.builder.gep(buffer, [leftCount])
+        self.doMemcpy(offsetBuffer, rightData, rightCount)
+        # Null-terminate
+        endPtr = self.builder.gep(buffer, [total])
+        self.builder.store(ir.Constant(ir.IntType(8), 0), endPtr)
+
+        # Build result string descriptor; use left's type for the LLVM struct
+        return self.makeStringFromPointer(buffer, total, left.type.pointee)
+
+    def doStringRepeat(self, strVal: ir.Value, n: ir.Value) -> ir.Value:
+        """
+        Implements `strVal * n` where strVal is `%str*` and n is `i32`.
+        Matches CPython: negative n yields an empty string.
+        Returns a new `%str*` pointing to a fresh, null-terminated buffer.
+        """
+        zero = self.getConstant(0, 32)
+        one = self.getConstant(1, 32)
+
+        # Load count and data
+        countPtr = self.builder.gep(strVal, [zero, zero])
+        count = self.builder.load(countPtr)
+        dataPtr = self.builder.gep(strVal, [zero, one])
+        data = self.builder.load(dataPtr)
+
+        # Clamp n to >= 0 (CPython: "a" * -1 == "")
+        isNeg = self.builder.icmp_signed('<', n, zero)
+        nClamped = self.builder.select(isNeg, zero, n)
+
+        # Total length
+        total = self.builder.mul(count, nClamped)
+        # Allocate buffer with room for a null terminator
+        totalPlusOne = self.builder.add(total, self.getConstant(1, 32))
+        buffer = self.builder.alloca(ir.IntType(8), totalPlusOne)
+
+        # Loop: for i in 0..nClamped-1, copy `data` into buffer at offset i*count
+        idx = self.builder.alloca(ir.IntType(32))
+        self.builder.store(self.getConstant(0, 32), idx)
+
+        condB = self.fn.append_basic_block('repeat-cond')
+        bodyB = self.fn.append_basic_block('repeat-body')
+        afterB = self.fn.append_basic_block('repeat-after')
+
+        self.builder.branch(condB)
+
+        self.builder.position_at_end(condB)
+        i = self.builder.load(idx)
+        cond = self.builder.icmp_signed('<', i, nClamped)
+        self.builder.cbranch(cond, bodyB, afterB)
+
+        self.builder.position_at_end(bodyB)
+        offset = self.builder.mul(i, count)
+        destPtr = self.builder.gep(buffer, [offset])
+        self.doMemcpy(destPtr, data, count)
+        newI = self.builder.add(i, self.getConstant(1, 32))
+        self.builder.store(newI, idx)
+        self.builder.branch(condB)
+
+        self.builder.position_at_end(afterB)
+        # Null-terminate
+        endPtr = self.builder.gep(buffer, [total])
+        self.builder.store(ir.Constant(ir.IntType(8), 0), endPtr)
+
+        return self.makeStringFromPointer(buffer, total, strVal.type.pointee)
+
     def doStore(self, ptr: ir.Value, val: ir.Value, t: Class):
         if t.isLoadable():
             self.builder.store(val, ptr)
@@ -626,6 +720,16 @@ class LLVMBackend():
         assert left is not None
         assert right is not None
         assert lhs != True
+
+        # String concatenation: str + str
+        if isinstance(node.op, ast.Add) and node.left.t.name == 'str':
+            return self.doStringConcat(left, right)
+        # String repetition: str * int or int * str
+        if isinstance(node.op, ast.Mult):
+            if node.left.t.name == 'str' and node.right.t.isInt():
+                return self.doStringRepeat(left, right)
+            if node.left.t.isInt() and node.right.t.name == 'str':
+                return self.doStringRepeat(right, left)
         
         return self.doBinOp(node.left.t, left, right, node.op)
         

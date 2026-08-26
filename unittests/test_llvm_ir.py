@@ -99,5 +99,44 @@ class TestSubscriptAssignmentIR(unittest.TestCase):
         mod.verify()
 
 
+class TestStringConcatIR(unittest.TestCase):
+    """Structural checks for string concat/repeat lowering."""
+
+    def test_concat_uses_memcpy(self):
+        src = 'a = "hi" + "!"\nprint(a)\n'
+        ir_text = ir_text_for(src)
+        # The lowering must call llvm.memcpy to copy the two string
+        # data buffers into a fresh buffer.
+        self.assertIn('llvm.memcpy', ir_text)
+        # Must store a null terminator.
+        self.assertIn('store i8 0', ir_text)
+
+    def test_repeat_has_loop(self):
+        # String repeat lowers to a loop with a conditional branch and
+        # a basic block per loop part (cond / body / after).
+        src = 'a = "ab" * 3\nprint(a)\n'
+        ir_text = ir_text_for(src)
+        self.assertIn('llvm.memcpy', ir_text)
+        # Loop back-edge: a `br` to a block that re-checks the condition.
+        self.assertIn('repeat-cond:', ir_text)
+        self.assertIn('repeat-body:', ir_text)
+        self.assertIn('repeat-after:', ir_text)
+        # No undef.
+        self.assertNotIn('undef', ir_text)
+
+    def test_concat_module_verifies(self):
+        src = 'a = "Hello, " + "World!"\nb = 3 * "x"\nprint(a, b)\n'
+        ir_text = ir_text_for(src)
+        mod = llvm.parse_assembly(ir_text)
+        mod.verify()
+
+    def test_repeat_negative_does_not_crash(self):
+        # Negative repeat must clamp to 0 and still produce a valid module.
+        src = 'a = "x" * -3\nprint(a)\n'
+        ir_text = ir_text_for(src)
+        mod = llvm.parse_assembly(ir_text)
+        mod.verify()
+
+
 if __name__ == '__main__':
     unittest.main()

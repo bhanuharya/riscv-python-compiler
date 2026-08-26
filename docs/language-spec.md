@@ -80,6 +80,11 @@ type; there is no implicit promotion.
 
 * **float**: IEEE-754 double operations with round-to-nearest-even.
 
+* **str**: `+` concatenates two strings (`"a" + "b" == "ab"`). `*` repeats
+  a string with a non-negative `int` count; both orderings work
+  (`"ab" * 3 == 3 * "ab" == "ababab"`). A negative repeat count yields
+  the empty string, matching CPython (`"ab" * -1 == ""`).
+
 Division by zero: for `int`, behavior is target-defined (on RISC-V the
 hardware returns `-1` for `/` and the dividend for `%`); for `float`, the
 IEEE result is produced (`inf`/`nan`). Programs should not rely on it.
@@ -178,6 +183,10 @@ prints `1`, both unlike CPython.
 * Iteration: `for x in items:` where `items` is `list[T]` or `str`.
 * Assignment of a list/string copies the slice descriptor, so both names
   refer to the same element buffer (reference semantics).
+* String concatenation (`+`) and repetition (`*`) produce a **new** string
+  whose buffer is independently allocated; the input strings are not
+  modified. The result is null-terminated so it can be passed to C's
+  `printf("%s", ...)`.
 * Empty list literals `[]` have element type `<None>` and are not useful.
 
 ## 7. Scoping summary

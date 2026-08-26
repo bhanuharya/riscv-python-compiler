@@ -694,6 +694,12 @@ class TypeChecker():
         left = self.evalNode(node.left)
         right = self.evalNode(node.right)
 
+        # int * str -> str (commutative string repetition)
+        if isinstance(node.op, ast.Mult) and left.t.isInt() and right.t.name == 'str':
+            result = CheckedBinNode(node, left, right, node.op)
+            result.t = right.t  # result is str, not int
+            return result
+
         if left.t.canPerformBinOp(right.t, node.op):
             return CheckedBinNode(node, left, right, node.op)
         

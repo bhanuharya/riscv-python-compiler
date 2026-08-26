@@ -113,6 +113,41 @@ print(add(3, 4))
         src = 'a = [0, 0, 0]\nfor i in range(3):\n    a[i] = i * 10\nprint(a[0], a[1], a[2])\n'
         self.check_equivalence(src)
 
+    def test_string_concat(self):
+        src = 'a = "Hello, " + "World!"\nprint(a)\n'
+        self.check_equivalence(src)
+
+    def test_string_repeat_str_int(self):
+        src = 'a = "ab" * 3\nprint(a)\n'
+        self.check_equivalence(src)
+
+    def test_string_repeat_int_str(self):
+        src = 'a = 3 * "ab"\nprint(a)\n'
+        self.check_equivalence(src)
+
+    def test_string_repeat_zero_and_negative(self):
+        # CPython: both yield empty string
+        src = 'print("ab" * 0)\nprint("ab" * -1)\n'
+        self.check_equivalence(src)
+
+    def test_string_concat_in_loop(self):
+        src = '''s = ""
+i = 0
+while i < 5:
+    s = s + "x"
+    i = i + 1
+print(s)
+'''
+        self.check_equivalence(src)
+
+    def test_string_repeat_in_for(self):
+        src = 'for i in range(4):\n    print("x" * i)\n'
+        self.check_equivalence(src)
+
+    def test_string_concat_with_len(self):
+        src = 'a = "Hello, " + "World!"\nprint(len(a))\n'
+        self.check_equivalence(src)
+
 
 @unittest.skipUnless(toolchain_available(), 'RISC-V toolchain not available')
 class TestOptEquivalence(unittest.TestCase):
