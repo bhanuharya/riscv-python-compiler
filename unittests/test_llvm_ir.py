@@ -130,6 +130,34 @@ print(counter)
         self.assertIn('g_counter', ir)
 
 
+class TestAugAssignIR(unittest.TestCase):
+    """AugAssign must lower to one address + one load + one binop +
+    one store. Re-evaluating the lvalue would emit a second call to
+    any side-effecting index expression."""
+
+    def test_aug_assign_calls_index_once(self):
+        src = '''
+ticks = 0
+def tick() -> int:
+    ticks = ticks + 1
+    return ticks - 1
+a = [10, 20, 30]
+a[tick()] += 5
+'''
+        ir = ir_text_for(src)
+        mod = llvm.parse_assembly(ir)
+        mod.verify()
+        # Isolate the body of @main.
+        main = ir.split('define i32 @"main"()', 1)[1].split('}', 1)[0]
+        # Exactly one call to tick() inside @main: the old lowering
+        # called it twice (once for the read, once for the store).
+        self.assertEqual(main.count('call i32 @"test.tick"()'), 1)
+        # Exactly one `add` (the +=5): the old double-eval path also
+        # re-ran the binop, producing two adds.
+        self.assertEqual(main.count('add i32'), 1)
+
+
+
 class TestStringConcatIR(unittest.TestCase):
     """Structural checks for string concat/repeat lowering."""
 

@@ -168,6 +168,73 @@ print(greet())
         src = 'a = [0, 0, 0]\nfor i in range(3):\n    a[i] = i * 10\nprint(a[0], a[1], a[2])\n'
         self.check_equivalence(src)
 
+    def test_aug_assign_scalar(self):
+        # Pure-int LHS: regression coverage for `+= -= *= /= %=` on a
+        # plain variable.
+        src = '''
+x = 10
+x += 3
+y = x
+y -= 4
+z = 2
+z *= 5
+w = 20
+w /= 4
+v = 17
+v %= 5
+print(x, y, z, w, v)
+'''
+        self.check_equivalence(src)
+
+    def test_aug_assign_subscript_pure_index(self):
+        # The "consistently wrong" case: the index has no side effects
+        # so both the old and the new lowering produce the same answer.
+        # Kept to ensure the refactor doesn't break the simple case.
+        src = 'a = [10, 20, 30]\na[1] += 5\nprint(a[0], a[1], a[2])\n'
+        self.check_equivalence(src)
+
+    def test_aug_assign_subscript_side_effect(self):
+        # The real bug: `a[f()] += x` must call `f` exactly once and
+        # store at the index returned. With the old lowering `f` was
+        # called twice and the second call's index won, writing the
+        # result to the wrong slot.
+        src = '''
+ticks = 0
+def tick() -> int:
+    ticks = ticks + 1
+    return ticks - 1
+a = [10, 20, 30]
+a[tick()] += 5
+print(a[0], a[1], a[2], ticks)
+'''
+        self.check_equivalence(src)
+
+    def test_aug_assign_subscript_global_index(self):
+        # Side-effecting index that reads a global (so the read inside
+        # the function must see the live value, not a stale snapshot).
+        src = '''
+idx = 0
+def next_idx() -> int:
+    idx = idx + 1
+    return idx - 1
+a = [100, 200, 300]
+a[next_idx()] += 1
+a[next_idx()] += 10
+print(a[0], a[1], a[2], idx)
+'''
+        self.check_equivalence(src)
+
+    def test_aug_assign_in_loop(self):
+        # Accumulators: `s += a[i]` over a list.
+        src = '''
+a = [1, 2, 3, 4, 5]
+s = 0
+for v in a:
+    s += v
+print(s)
+'''
+        self.check_equivalence(src)
+
     def test_string_concat(self):
         src = 'a = "Hello, " + "World!"\nprint(a)\n'
         self.check_equivalence(src)

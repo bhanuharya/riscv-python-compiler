@@ -347,10 +347,16 @@ class ReferenceEvaluator:
         return a % b
 
     def _eval_augassign(self, node: CheckedBinNode):
-        res = self._eval_binop(node)
+        # Evaluate the lvalue once: the index expression may have side
+        # effects (e.g. `a[f()] += x`), and re-evaluating it both for
+        # the read and for the store would call `f` twice and target
+        # the wrong slot.
         target = node.left
         base = target.base
         if isinstance(base, ast.Name):
+            old = self._eval_expr(target)
+            rhs = self._eval_expr(node.right)
+            res = self._apply_binop(old, rhs, node.op)
             self._assign_name(base.id, res)
             return res
         if isinstance(base, ast.Subscript):
@@ -358,9 +364,26 @@ class ReferenceEvaluator:
             lst = self._eval_expr(target.op)
             idx = self._eval_expr(target.subscript)
             self._check_index(idx, len(lst))
+            old = lst[idx]
+            rhs = self._eval_expr(node.right)
+            res = self._apply_binop(old, rhs, node.op)
             lst[idx] = res
             return res
         raise InterpretError(f'Unsupported augmented assignment target: {ast.dump(base)}')
+
+    @staticmethod
+    def _apply_binop(left, right, op):
+        if isinstance(op, ast.Add):
+            return left + right
+        if isinstance(op, ast.Sub):
+            return left - right
+        if isinstance(op, ast.Mult):
+            return left * right
+        if isinstance(op, ast.Div):
+            return ReferenceEvaluator._div(left, right)
+        if isinstance(op, ast.Mod):
+            return ReferenceEvaluator._mod(left, right)
+        raise InterpretError(f'Unsupported augmented assignment operator: {type(op).__name__}')
 
     def _eval_unaryop(self, node: CheckedUnaryOpNode):
         value = self._eval_expr(node.operand)

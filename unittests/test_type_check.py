@@ -194,6 +194,24 @@ print(a, b)
         # or short-circuits at side(1)==True.
         self.assertEqual(out, '1\n0\n1\n0 1\n')
 
+    def test_aug_assign_subscript_calls_index_once(self):
+        # The reference evaluator must call the side-effecting index
+        # expression exactly once.  Pre-fix it called it twice, which
+        # (a) incremented the counter twice and (b) stored the result
+        # at the wrong slot.
+        src = '''
+ticks = 0
+def tick() -> int:
+    ticks = ticks + 1
+    return ticks - 1
+a = [10, 20, 30]
+a[tick()] += 5
+print(a[0], a[1], a[2], ticks)
+'''
+        out, status = oracle_output(src)
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '15 20 30 1\n')
+
     def test_subscript_assign_aliases(self):
         # Lists are reference types: writing through one alias must be
         # visible through another.

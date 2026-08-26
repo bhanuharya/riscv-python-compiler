@@ -835,12 +835,23 @@ class LLVMBackend():
         return val
     
     def evalAugAssign(self, node: CheckedBinNode, lhs: bool) -> ir.Value:
+        # Evaluate the lvalue exactly once to obtain its address, then
+        # load the old value from that same address. Re-evaluating
+        # `node.left` for the read would re-run any side effects in the
+        # subscript/attribute path (e.g. `a[f()] += x` would call `f`
+        # twice and store at the wrong index on the second call).
         assign = self.evalNode(node.left, True)
-        left = self.evalNode(node.left, False)
         right = self.evalNode(node.right, False)
         assert assign is not None
-        assert left is not None
         assert right is not None
+        if node.left.t.isLoadable():
+            left = self.builder.load(assign)
+        else:
+            # For non-loadable types (lists/strings) the assignment
+            # itself is a memcpy of the whole descriptor; the 'old
+            # value' is just the source descriptor from the right-hand
+            # side of the binop.
+            left = right
         result = self.doBinOp(node.left.t, left, right, node.op)
         self.doStore(assign, result, node.left.t)
         if lhs:
