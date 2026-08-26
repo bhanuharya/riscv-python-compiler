@@ -155,6 +155,11 @@ Supported: assignment, augmented assignment, subscript assignment,
 | `range`  | `range(n: int) -> list[int]` | List `[0, 1, …, n-1]`.                 |
 | `float`  | `float(int) -> float` | See §1.2.                                 |
 | `int`    | `int(float) -> int`   | See §1.2.                                 |
+| `str`    | `str(int) -> str`, `str(float) -> str` | See §5.2.                    |
+| `bool`   | `bool(x: int) -> bool` | `0 → False`, non-zero → `True`.           |
+| `abs`    | `abs(int) -> int`, `abs(float) -> float` | Absolute value.          |
+| `min`    | `min(a, b)` (both `int` or both `float`) | Returns the smaller; result type matches the arguments. On a tie returns `a`. |
+| `max`    | `max(a, b)` (both `int` or both `float`) | Returns the larger; result type matches the arguments. On a tie returns `a`. |
 
 ### 5.1 `print` formatting
 
@@ -170,6 +175,18 @@ The backend emits a `printf` call with the following conversions:
 
 Consequently `print(True)` prints `1`, and `print(3 / 2)` (int division)
 prints `1`, both unlike CPython.
+
+### 5.2 String conversions (`str`)
+
+`str()` accepts `int` or `float` and produces a heap-allocated string:
+
+- `str(42)` → `"42"`; formatted exactly as `printf("%d")` would.
+- `str(3.14)` → `"3.140000"`; formatted with **6 decimal places**, matching
+  `printf("%f")` — unlike CPython's shortest-round-trip repr.
+
+The result is written via libc `sprintf` into a buffer from the runtime
+heap (see `docs/runtime-model.md`), so it may be returned from functions,
+concatenated, or stored like any other string.
 
 ## 6. Strings and lists
 

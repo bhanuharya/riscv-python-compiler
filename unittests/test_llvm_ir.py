@@ -147,6 +147,53 @@ class TestHeapAllocatorIR(unittest.TestCase):
         self.assertIn('declare i8* @"pyr_alloc"', ir_text)
         self.assertIn('@"pyr_alloc_init"', ir_text)
 
+
+class TestBuiltinsIR(unittest.TestCase):
+    """Structural checks for the str/bool/abs/min/max builtins."""
+
+    def test_sprintf_declared(self):
+        src = 'a = str(42)\nprint(a)\n'
+        ir_text = ir_text_for(src)
+        self.assertIn('declare i32 @"sprintf"', ir_text)
+
+    def test_str_int_uses_sprintf_and_strlen(self):
+        src = 'a = str(42)\nprint(a)\n'
+        ir_text = ir_text_for(src)
+        # sprintf writes into a heap buffer; strlen measures the result.
+        self.assertIn('call i32 (i8*, i8*, ...) @"sprintf"', ir_text)
+        self.assertIn('@"strlen"', ir_text)
+        self.assertIn('call i8* @"pyr_alloc"', ir_text)
+
+    def test_bool_cast_is_icmp(self):
+        src = 'a = bool(5)\nprint(a)\n'
+        ir_text = ir_text_for(src)
+        # bool() must lower to an icmp against zero producing an i1.
+        self.assertRegex(ir_text, r'icmp[^\n]*i32[^\n]*0')
+
+    def test_abs_int_uses_select(self):
+        src = 'a = abs(-5)\nprint(a)\n'
+        ir_text = ir_text_for(src)
+        self.assertRegex(ir_text, r'select\s+i1')
+
+    def test_float_minmax_avoids_select(self):
+        # llc-14 miscompiles `select` on f64 for RV32 soft-float, so float
+        # min/max/abs must use an explicit branch instead.
+        src = 'a = min(3.14, 2.71)\nb = max(3.14, 2.71)\nc = abs(-2.5)\nprint(a, b, c)\n'
+        ir_text = ir_text_for(src)
+        self.assertNotIn('select double', ir_text)
+        self.assertIn('fcmp', ir_text)
+
+    def test_module_verifies_with_builtins(self):
+        src = '''a = str(-7)
+b = abs(-2.5)
+c = min(3.0, 9.0)
+d = bool(4)
+print(a, b, c, d)
+'''
+        ir_text = ir_text_for(src)
+        mod = llvm.parse_assembly(ir_text)
+        mod.verify()
+
     def test_pyr_alloc_init_called(self):
         # The init function must be called at the start of main so the
         # heap is ready before any allocation.

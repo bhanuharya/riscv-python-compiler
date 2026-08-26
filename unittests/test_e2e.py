@@ -193,6 +193,55 @@ print(x[0], x[1], x[2])
 '''
         self.check_equivalence(src)
 
+    def test_builtin_str(self):
+        src = '''print(str(123))
+print(str(-456))
+print(str(0))
+print(str(3.14))
+print(str(-2.5))
+print(str(0.0))
+a = "n=" + str(7)
+print(a)
+'''
+        self.check_equivalence(src)
+
+    def test_builtin_bool_abs(self):
+        src = '''print(bool(0))
+print(bool(1))
+print(bool(-5))
+print(abs(5))
+print(abs(-5))
+print(abs(0))
+print(abs(-2.5))
+'''
+        self.check_equivalence(src)
+
+    def test_builtin_min_max(self):
+        src = '''print(min(3, 7), max(3, 7), min(-1, -5), max(-1, -5))
+print(min(3.14, 2.71))
+print(max(3.14, 2.71))
+x = min(10, 20) + max(10, 20)
+print(x)
+'''
+        self.check_equivalence(src)
+
+    def test_builtins_in_function(self):
+        # Builtins must work inside user functions whose results are
+        # returned (exercises heap buffers + polymorphic types).
+        src = '''def label(n: int) -> str:
+    return "v=" + str(n)
+
+def clip(x: int) -> int:
+    return min(max(x, 0), 100)
+
+a = label(42)
+b = clip(-5)
+c = clip(150)
+d = abs(-2.5)
+print(a, b, c, d)
+'''
+        self.check_equivalence(src)
+
 
 @unittest.skipUnless(toolchain_available(), 'RISC-V toolchain not available')
 class TestOptEquivalence(unittest.TestCase):

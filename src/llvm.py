@@ -80,12 +80,19 @@ class LLVMBackend():
             ir.IntType(REGISTER_SIZE),
         ]), 'pyr_alloc')
 
+        # sprintf(i8* buf, i8* fmt, ...) -> i32  (used by str())
+        sprintf = ir.Function(self.module, ir.FunctionType(ir.IntType(REGISTER_SIZE), [
+            ir.IntType(8).as_pointer(),
+            ir.IntType(8).as_pointer(),
+        ], True), 'sprintf')
+
         self.symbols[0]['memcpy'] = LLVMSymbol( FnType([], noneType()),  memcpy)
         self.symbols[0]['printf'] = LLVMSymbol( FnType([], noneType()),  printf)
         self.symbols[0]['readln'] = LLVMSymbol( FnType([], noneType()),  readline)
         self.symbols[0]['memcmp'] = LLVMSymbol( FnType([], noneType()),  memcmp)
         self.symbols[0]['pyr_alloc'] = LLVMSymbol( FnType([], noneType()), pyr_alloc)
         self.symbols[0]['pyr_alloc_init'] = LLVMSymbol( FnType([], noneType()), pyr_alloc_init)
+        self.symbols[0]['sprintf'] = LLVMSymbol( FnType([], noneType()), sprintf)
         self.symbols[0]['strlen'] = LLVMSymbol( FnType([], noneType()),  strlen)
 
         self.breakBlock: list[ir.Block] = list()
@@ -898,8 +905,83 @@ class LLVMBackend():
         val = self.evalNode(args[0], False)
         
         return self.builder.fptosi(val, retType.toLLVM())
-        
-    
+
+    def doStr(self, args: list[CheckedNode]) -> ir.Value:
+        """str(int) or str(float): convert to string via sprintf."""
+        assert len(args) == 1
+        arg = args[0]
+        val = self.evalNode(arg, False)
+        from .type import ListType, Class
+        str_t = ListType("str", Class('char'))
+        strT = str_t.toLLVM()
+        if arg.t.isInt():
+            # Max i32 is -2147483648 (11 chars + NUL = 12 bytes)
+            buf = self.heapAlloc(ir.IntType(8), 12)
+            fmt = self.getConstString('%d')
+            self.builder.call(self.symbols[0]['sprintf'].ptr, [buf, fmt, val])
+            strlen = self.symbols[0]['strlen'].ptr
+            length = self.builder.call(strlen, [buf])
+            return self.makeStringFromPointer(buf, length, strT)
+        if arg.t.isFloat():
+            # Plenty of room for a double formatted with %f
+            buf = self.heapAlloc(ir.IntType(8), 64)
+            fmt = self.getConstString('%f')
+            self.builder.call(self.symbols[0]['sprintf'].ptr, [buf, fmt, val])
+            strlen = self.symbols[0]['strlen'].ptr
+            length = self.builder.call(strlen, [buf])
+            return self.makeStringFromPointer(buf, length, strT)
+        raise CompileError(f'str() argument must be int or float, got {arg.t}')
+
+    def doBoolCast(self, args: list[CheckedNode]) -> ir.Value:
+        """bool(int): 0 -> False, non-zero -> True."""
+        assert len(args) == 1
+        val = self.evalNode(args[0], False)
+        # icmp returns i1, which is the LLVM representation of bool
+        return self.builder.icmp_signed('!=', val, self.getConstant(0, 32))
+
+    def doAbs(self, args: list[CheckedNode]) -> ir.Value:
+        """abs(int) or abs(float)."""
+        assert len(args) == 1
+        arg = args[0]
+        val = self.evalNode(arg, False)
+        if arg.t.isInt():
+            neg = self.builder.sub(self.getConstant(0, 32), val)
+            is_neg = self.builder.icmp_signed('<', val, self.getConstant(0, 32))
+            return self.builder.select(is_neg, neg, val)
+        if arg.t.isFloat():
+            zero = ir.Constant(ir.DoubleType(), 0.0)
+            neg = self.builder.fsub(zero, val)
+            is_neg = self.builder.fcmp_ordered('<', val, zero)
+            # NOTE: llc-14 miscompiles `select` on f64 for RV32 soft-float,
+            # so floats use an explicit branch instead.
+            return self._branchSelect(is_neg, neg, val, ir.DoubleType())
+        raise CompileError(f'abs() argument must be int or float, got {arg.t}')
+
+    def _branchSelect(self, cond: ir.Value, trueVal: ir.Value, falseVal: ir.Value, llvmT: ir.Type) -> ir.Value:
+        """Select implemented with a branch + alloca instead of the LLVM
+        `select` instruction, which llc-14 miscompiles on f64 for RV32."""
+        tmp = self.builder.alloca(llvmT)
+        self.builder.store(falseVal, tmp)
+        with self.builder.if_then(cond):
+            self.builder.store(trueVal, tmp)
+        return self.builder.load(tmp)
+
+    def doMinMax(self, args: list[CheckedNode], is_max: bool) -> ir.Value:
+        """min(int, int), max(int, int), min(float, float), max(float, float)."""
+        assert len(args) == 2
+        a = self.evalNode(args[0], False)
+        b = self.evalNode(args[1], False)
+        if args[0].t.isInt() and args[1].t.isInt():
+            op = '>' if is_max else '<'
+            cond = self.builder.icmp_signed(op, a, b)
+            return self.builder.select(cond, a, b)
+        if args[0].t.isFloat() and args[1].t.isFloat():
+            op = 'ogt' if is_max else 'olt'
+            cond = self.builder.fcmp_ordered(op, a, b)
+            # NOTE: no `select` on f64 (see _branchSelect)
+            return self._branchSelect(cond, a, b, ir.DoubleType())
+        raise CompileError(f'min/max arguments must both be int or both float')
+
     def evalCall(self, node: CheckedCallNode, lhs: bool) -> ir.Value:
         match node.fnName:
             case 'print':
@@ -914,6 +996,16 @@ class LLVMBackend():
                 return self.doFloatCast(node.args, node.fnType.asCallable().returnType)
             case 'int':
                 return self.doIntCast(node.args, node.fnType.asCallable().returnType)
+            case 'str':
+                return self.doStr(node.args)
+            case 'bool':
+                return self.doBoolCast(node.args)
+            case 'abs':
+                return self.doAbs(node.args)
+            case 'min':
+                return self.doMinMax(node.args, is_max=False)
+            case 'max':
+                return self.doMinMax(node.args, is_max=True)
 
             case None:
                 pass

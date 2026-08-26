@@ -89,8 +89,10 @@ The implementation currently covers a restricted, typed subset of Python:
 - `if`, `while`, `for`, and `break`
 - functions, parameters, and `return`
 - `print`, `input`, `len`, and `range`
-- `float()` and `int()` conversions
-- list construction, iteration, and indexing
+- `float()`, `int()`, `str()`, and `bool()` conversions
+- `abs()`, `min()`, and `max()`
+- string concatenation (`+`) and repetition (`*`)
+- list construction, iteration, indexing, and element assignment
 
 The type checker rejects unsupported or incompatible operations before LLVM IR generation. Python features such as classes, exceptions, imports, dictionaries, comprehensions, generators, and dynamic reflection are outside the current scope.
 

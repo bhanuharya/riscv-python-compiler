@@ -38,6 +38,22 @@ print(x, y, z, d)
     def test_string_repeat_int_str(self):
         typecheck_source('a = 3 * "ab"\nprint(a)\n')
 
+    def test_builtin_conversions(self):
+        typecheck_source('a = str(42)\nb = str(2.5)\nprint(a, b)\n')
+        typecheck_source('a = bool(0)\nprint(a)\n')
+
+    def test_builtin_numeric(self):
+        typecheck_source('print(abs(-5), abs(2.5), min(1, 2), max(3.0, 4.0))\n')
+
+    def test_builtin_float_result_assignable_to_float_var(self):
+        # abs/min/max must return the argument's type: if the checker hard-
+        # coded int, assigning the result to a float variable would fail.
+        typecheck_source('a = 0.0\na = abs(-2.5)\nb = min(1.5, 2.5)\nc = max(0.5, 1.5)\n')
+
+    def test_builtin_str_result_usable_as_str(self):
+        # str() must produce a real str that concatenates with literals.
+        typecheck_source('a = "n=" + str(7)\nprint(a)\n')
+
     def test_void_function_returns_none(self):
         src = '''
 def f() -> None:
@@ -119,6 +135,27 @@ class TestTypeCheckerRejects(unittest.TestCase):
 
     def test_str_times_float_rejected(self):
         self.assert_compile_error('a = "x" * 1.5\n', 'binary operation')
+
+    def test_str_of_str_rejected(self):
+        self.assert_compile_error('a = str("hi")\n', 'str()')
+
+    def test_abs_of_str_rejected(self):
+        self.assert_compile_error('a = abs("hi")\n', 'abs()')
+
+    def test_min_mixed_types_rejected(self):
+        self.assert_compile_error('a = min(1, 2.5)\n', 'min()')
+
+    def test_max_mixed_types_rejected(self):
+        self.assert_compile_error('a = max(1.5, 2)\n', 'max()')
+
+    def test_bool_of_float_rejected(self):
+        self.assert_compile_error('a = bool(2.5)\n', 'bool()')
+
+    def test_abs_wrong_arity_rejected(self):
+        self.assert_compile_error('a = abs(1, 2)\n', 'argument')
+
+    def test_min_one_arg_rejected(self):
+        self.assert_compile_error('a = min(1)\n', 'argument')
 
     def test_int_times_list_rejected(self):
         self.assert_compile_error('a = [1]\nb = 2 * a\n', 'binary operation')
@@ -332,6 +369,66 @@ print(b)
 ''')
         self.assertEqual(status, 0)
         self.assertEqual(out, 'Hello, Alice!\nHello, Bob!\n')
+
+    def test_str_int_conversion(self):
+        out, status = oracle_output('print(str(123))\nprint(str(-456))\nprint(str(0))\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '123\n-456\n0\n')
+
+    def test_str_float_uses_printf_format(self):
+        # str(float) must match the backend's sprintf("%f") output:
+        # exactly 6 digits after the decimal point.
+        out, status = oracle_output('a = str(3.14)\nb = str(-2.5)\nc = str(0.0)\nprint(a)\nprint(b)\nprint(c)\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '3.140000\n-2.500000\n0.000000\n')
+
+    def test_bool_cast(self):
+        out, status = oracle_output('print(bool(0))\nprint(bool(1))\nprint(bool(-5))\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '0\n1\n1\n')
+
+    def test_abs_values(self):
+        out, status = oracle_output('print(abs(5))\nprint(abs(-5))\nprint(abs(0))\nprint(abs(-2.5))\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '5\n5\n0\n2.500000\n')
+
+    def test_min_max_values(self):
+        out, status = oracle_output(
+            'print(min(3, 7), min(7, 3), max(3, 7), max(7, 3), min(-1, -5), max(-1, -5))\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '3 3 7 7 -5 -1\n')
+
+    def test_min_max_floats(self):
+        out, status = oracle_output('print(min(3.14, 2.71))\nprint(max(3.14, 2.71))\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '2.710000\n3.140000\n')
+
+    def test_min_max_ties_return_first(self):
+        # On a tie both are equal; result value must be that value.
+        out, status = oracle_output('print(min(4, 4))\nprint(max(4, 4))\n')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '4\n4\n')
+
+    def test_builtins_compose(self):
+        src = '''a = str(min(10, 20)) + str(max(30, 40))
+b = abs(-10) + abs(5)
+c = bool(1) + bool(0)
+print(a)
+print(b)
+print(c)
+'''
+        out, status = oracle_output(src)
+        self.assertEqual(status, 0)
+        self.assertEqual(out, '1040\n15\n1\n')
+
+    def test_str_in_function_returned(self):
+        out, status = oracle_output('''def label(n: int) -> str:
+    return "v=" + str(n)
+
+print(label(42))
+''')
+        self.assertEqual(status, 0)
+        self.assertEqual(out, 'v=42\n')
 
 
 if __name__ == '__main__':

@@ -424,6 +424,36 @@ class ReferenceEvaluator:
             if line.endswith('\n'):
                 line = line[:-1]
             return line
+        if name == 'str':
+            assert len(node.args) == 1
+            val = self._eval_expr(node.args[0])
+            if isinstance(val, bool):
+                return '1' if val else '0'
+            if _is_int(val):
+                return str(val)
+            if isinstance(val, float):
+                return format_float(val)
+            raise InterpretError(f'str() argument must be int or float, got {type(val).__name__}')
+        if name == 'bool':
+            assert len(node.args) == 1
+            val = self._eval_expr(node.args[0])
+            return val != 0
+        if name == 'abs':
+            assert len(node.args) == 1
+            val = self._eval_expr(node.args[0])
+            if _is_int(val):
+                return wrap_i32(abs(val))
+            return abs(val)
+        if name == 'min':
+            assert len(node.args) == 2
+            a = self._eval_expr(node.args[0])
+            b = self._eval_expr(node.args[1])
+            return a if a <= b else b
+        if name == 'max':
+            assert len(node.args) == 2
+            a = self._eval_expr(node.args[0])
+            b = self._eval_expr(node.args[1])
+            return a if a >= b else b
         if name is None:
             # User-defined function call.
             operand = node.operand.base
