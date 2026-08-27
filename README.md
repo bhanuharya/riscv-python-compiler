@@ -78,6 +78,12 @@ evaluator, and compares optimized vs. unoptimized binaries. Tool paths are
 resolved from `PYRV_OPT`, `PYRV_LLC`, `PYRV_CC`, `PYRV_SYSROOT`, and
 `PYRV_QEMU_USER` (see `src/runner.py`).
 
+For a full target run, `PYRV_CC` must be a Linux RISC-V32 **cross-Clang**
+capable of consuming the generated LLVM IR. A bare RISC-V GCC cannot be used
+directly because the runner passes `.ll`/`.bc` files to the link stage; a
+wrapper may first compile those inputs to objects and then link them with a
+Buildroot GCC driver.
+
 ## Supported language subset
 
 The implementation currently covers a restricted, typed subset of Python:
@@ -352,7 +358,7 @@ Do not run unreviewed compiler output against a real system. The intended target
 
 This is an experimental compiler, not a production compiler. Current limitations include:
 
-- no bounds checking for list indexing
+- bounds checking is optional (`--bounds-check`); default builds remain unchecked
 - incomplete runtime and memory-safety modeling
 - manually declared runtime functions
 - incomplete ABI and calling-convention validation
@@ -381,6 +387,21 @@ complex.py    exit status 0
 ```
 
 This validates the compiler, optimizer, LLVM 14 `llc`, RISC-V Linux cross-linker, and generated-program execution path. The privileged `build.py` filesystem-mount workflow remains a separate integration path and should be run only after checking its configured Buildroot paths.
+
+### Full regression validation
+
+On 2026-08-25, the complete regression suite was run with LLVM 14, the
+Buildroot RISC-V32 Linux/glibc sysroot, and `/usr/bin/qemu-riscv32`:
+
+```text
+Ran 146 tests in 21.079s
+OK
+```
+
+This run included all oracle-vs-QEMU cases, optimized-vs-unoptimized
+equivalence checks, bounds-check behavior, aggregate/list/string execution,
+and exit-status checks. No tests were skipped. The repository worktree stayed
+clean after the run.
 
 ## Interpreting optimization results
 
