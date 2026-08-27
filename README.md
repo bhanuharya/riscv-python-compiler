@@ -38,8 +38,14 @@ QEMU RISC-V32 system emulation
 
 ```text
 main.py                 Compiler command-line entry point
-build.py                Compile, optimize, link, install, and run in QEMU
-opt_build.py            Experimental build and measurement pipeline
+scripts/build.py        Compile, optimize, link, install, and run in QEMU
+scripts/opt_build.py    Experimental build and measurement pipeline
+scripts/run_tests.sh    Host-oriented test runner
+scripts/run_regression_tests.sh  Full regression test runner
+build.py                Compatibility launcher for scripts/build.py
+opt_build.py            Compatibility launcher for scripts/opt_build.py
+run_tests.sh             Compatibility launcher for scripts/run_tests.sh
+run_regression_tests.sh  Compatibility launcher for scripts/run_regression_tests.sh
 src/compiler.py         Frontend/type-checker/backend orchestration
 src/type_check.py       Static type checking and checked-node construction
 src/llvm.py              LLVM IR generation and RISC-V target setup
@@ -50,7 +56,6 @@ src/runner.py           Reproducible build/run harness (env-configurable)
 docs/language-spec.md   Normative language specification
 docs/runtime-model.md   Memory layout / calling convention / runtime model
 unittests/              Regression test suite (unittest)
-run_regression_tests.sh Test runner entry point
 tests/                  Language and benchmark programs
 hasil/                  Saved optimization experiment results
 compiler.drawio         High-level compiler flow diagram
