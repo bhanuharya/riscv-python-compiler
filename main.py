@@ -16,10 +16,15 @@ def main():
     parser.add_argument('--bits', '-b', type=int, default=32)
     parser.add_argument('--output', '-o', default='out.ll',
                         help='Output LLVM IR file (default: out.ll)')
+    parser.add_argument('--bounds-check', action='store_true', default=False,
+                        help='Emit runtime bounds checks for list/string subscripts; '
+                             'an out-of-range index prints an IndexError to stderr '
+                             'and exits with status 1')
     args = parser.parse_args()
 
     constants.REGISTER_SIZE = args.bits
-    compiler = Compiler(args.filein, outFile=args.output)
+    compiler = Compiler(args.filein, outFile=args.output,
+                        boundsCheck=args.bounds_check)
 
     try:
         with open(args.filein) as f:

@@ -196,6 +196,7 @@ class ReferenceEvaluator:
             assert isinstance(target, CheckedSubscriptNode)
             lst = self._eval_expr(target.op)
             idx = self._eval_expr(target.subscript)
+            self._check_index(idx, len(lst))
             lst[idx] = value
             return
         raise InterpretError(f'Unsupported assignment target: {ast.dump(base)}')
@@ -290,8 +291,18 @@ class ReferenceEvaluator:
             assert isinstance(expr, CheckedSubscriptNode)
             lst = self._eval_expr(expr.op)
             idx = self._eval_expr(expr.subscript)
+            self._check_index(idx, len(lst))
             return lst[idx]
         raise InterpretError(f'Unsupported expression: {ast.dump(base)}')
+
+    def _check_index(self, idx: int, count: int):
+        """
+        Reject out-of-range subscripts the way the runtime bounds check does
+        (negative indices are not supported by the language).
+        """
+        if idx < 0 or idx >= count:
+            raise InterpretError(
+                f'IndexError: index {idx} out of range for size {count}')
 
     def _eval_binop(self, node: CheckedBinNode):
         left = self._eval_expr(node.left)
@@ -336,19 +347,43 @@ class ReferenceEvaluator:
         return a % b
 
     def _eval_augassign(self, node: CheckedBinNode):
-        res = self._eval_binop(node)
+        # Evaluate the lvalue once: the index expression may have side
+        # effects (e.g. `a[f()] += x`), and re-evaluating it both for
+        # the read and for the store would call `f` twice and target
+        # the wrong slot.
         target = node.left
         base = target.base
         if isinstance(base, ast.Name):
+            old = self._eval_expr(target)
+            rhs = self._eval_expr(node.right)
+            res = self._apply_binop(old, rhs, node.op)
             self._assign_name(base.id, res)
             return res
         if isinstance(base, ast.Subscript):
             assert isinstance(target, CheckedSubscriptNode)
             lst = self._eval_expr(target.op)
             idx = self._eval_expr(target.subscript)
+            self._check_index(idx, len(lst))
+            old = lst[idx]
+            rhs = self._eval_expr(node.right)
+            res = self._apply_binop(old, rhs, node.op)
             lst[idx] = res
             return res
         raise InterpretError(f'Unsupported augmented assignment target: {ast.dump(base)}')
+
+    @staticmethod
+    def _apply_binop(left, right, op):
+        if isinstance(op, ast.Add):
+            return left + right
+        if isinstance(op, ast.Sub):
+            return left - right
+        if isinstance(op, ast.Mult):
+            return left * right
+        if isinstance(op, ast.Div):
+            return ReferenceEvaluator._div(left, right)
+        if isinstance(op, ast.Mod):
+            return ReferenceEvaluator._mod(left, right)
+        raise InterpretError(f'Unsupported augmented assignment operator: {type(op).__name__}')
 
     def _eval_unaryop(self, node: CheckedUnaryOpNode):
         value = self._eval_expr(node.operand)
@@ -424,6 +459,36 @@ class ReferenceEvaluator:
             if line.endswith('\n'):
                 line = line[:-1]
             return line
+        if name == 'str':
+            assert len(node.args) == 1
+            val = self._eval_expr(node.args[0])
+            if isinstance(val, bool):
+                return '1' if val else '0'
+            if _is_int(val):
+                return str(val)
+            if isinstance(val, float):
+                return format_float(val)
+            raise InterpretError(f'str() argument must be int or float, got {type(val).__name__}')
+        if name == 'bool':
+            assert len(node.args) == 1
+            val = self._eval_expr(node.args[0])
+            return val != 0
+        if name == 'abs':
+            assert len(node.args) == 1
+            val = self._eval_expr(node.args[0])
+            if _is_int(val):
+                return wrap_i32(abs(val))
+            return abs(val)
+        if name == 'min':
+            assert len(node.args) == 2
+            a = self._eval_expr(node.args[0])
+            b = self._eval_expr(node.args[1])
+            return a if a <= b else b
+        if name == 'max':
+            assert len(node.args) == 2
+            a = self._eval_expr(node.args[0])
+            b = self._eval_expr(node.args[1])
+            return a if a >= b else b
         if name is None:
             # User-defined function call.
             operand = node.operand.base

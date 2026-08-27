@@ -17,6 +17,7 @@ Environment variable configuration:
     PYRV_READLINE   path to readline.c helper (default: ./readline.c)
     PYRV_RUNTIME_LIB path to a runtime shared dir containing readline.c
                      (used when readline.c is not in the current dir)
+    PYRV_RUNTIME    path to runtime.c (heap allocator) (default: ./runtime.c)
 """
 
 from __future__ import annotations
@@ -89,6 +90,17 @@ def readline_path() -> str:
     return str(local)
 
 
+def runtime_path() -> str:
+    """Locate runtime.c (the C runtime helper: bump allocator)."""
+    override = os.environ.get('PYRV_RUNTIME')
+    if override:
+        return override
+    local = _REPO_ROOT / 'runtime.c'
+    if local.exists():
+        return str(local)
+    return str(local)
+
+
 def _run(cmd: list[str], cwd=None) -> subprocess.CompletedProcess:
     return subprocess.run(
         cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -105,7 +117,8 @@ def _check_tool(path: str, name: str):
 
 
 def compile_program(src: str, out_dir: str, passes: str | None = None,
-                    name: str | None = None) -> dict[str, str]:
+                    name: str | None = None,
+                    bounds_check: bool = False) -> dict[str, str]:
     """
     Compile a .py source through IR -> opt -> llc -> link.
 
@@ -125,7 +138,10 @@ def compile_program(src: str, out_dir: str, passes: str | None = None,
     # Frontend (the compiler itself). Run in-process via a small helper
     # script to avoid importing from the harness's own cwd issues.
     frontend = _REPO_ROOT / 'main.py'
-    proc = _run([os.sys.executable, str(frontend), src, '-o', str(ir)])
+    frontend_cmd = [os.sys.executable, str(frontend), src, '-o', str(ir)]
+    if bounds_check:
+        frontend_cmd.append('--bounds-check')
+    proc = _run(frontend_cmd)
     if proc.returncode != 0:
         raise ToolchainError(f'frontend failed:\n{proc.stderr}')
 
@@ -158,7 +174,7 @@ def compile_program(src: str, out_dir: str, passes: str | None = None,
     sysroot = sysroot_path()
     proc = _run([cc, f'--sysroot={sysroot}', f'-march={RISCV_MARCH}',
                  f'-mabi={RISCV_MABI}', str(opt_bc), readline_path(),
-                 '-o', str(exe)])
+                 runtime_path(), '-o', str(exe)])
     if proc.returncode != 0:
         raise ToolchainError(f'link failed:\n{proc.stderr}')
 

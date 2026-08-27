@@ -25,7 +25,11 @@ class LLVMBackend():
     symbols: list[dict[str, LLVMSymbol]]
     target_machine: llvm.TargetMachine
     triple: str
-    def __init__(self, fileName: str, outFile: str = 'out.ll'):
+    def __init__(self, fileName: str, outFile: str = 'out.ll', boundsCheck: bool = False):
+        self.outFile = outFile
+        # When enabled every list/string subscript emits a runtime bounds
+        # check (pyr_bounds_check) before the element access.
+        self.boundsCheck = boundsCheck
         self.outFile = outFile
         llvm.initialize()
         llvm.initialize_all_targets()
@@ -73,15 +77,42 @@ class LLVMBackend():
             ir.IntType(REGISTER_SIZE),
         ]), 'memcmp')
 
+        # pyr_alloc_init() -> void
+        pyr_alloc_init = ir.Function(self.module, ir.FunctionType(ir.VoidType(), []), 'pyr_alloc_init')
+        # pyr_alloc(i32 size) -> i8*
+        pyr_alloc = ir.Function(self.module, ir.FunctionType(voidPtr, [
+            ir.IntType(REGISTER_SIZE),
+        ]), 'pyr_alloc')
+
+        # sprintf(i8* buf, i8* fmt, ...) -> i32  (used by str())
+        sprintf = ir.Function(self.module, ir.FunctionType(ir.IntType(REGISTER_SIZE), [
+            ir.IntType(8).as_pointer(),
+            ir.IntType(8).as_pointer(),
+        ], True), 'sprintf')
+
+        # pyr_bounds_check(i32 index, i32 count) -> void
+        pyr_bounds_check = ir.Function(self.module, ir.FunctionType(ir.VoidType(), [
+            ir.IntType(REGISTER_SIZE),
+            ir.IntType(REGISTER_SIZE),
+        ]), 'pyr_bounds_check')
+
         self.symbols[0]['memcpy'] = LLVMSymbol( FnType([], noneType()),  memcpy)
         self.symbols[0]['printf'] = LLVMSymbol( FnType([], noneType()),  printf)
         self.symbols[0]['readln'] = LLVMSymbol( FnType([], noneType()),  readline)
         self.symbols[0]['memcmp'] = LLVMSymbol( FnType([], noneType()),  memcmp)
+        self.symbols[0]['pyr_alloc'] = LLVMSymbol( FnType([], noneType()), pyr_alloc)
+        self.symbols[0]['pyr_alloc_init'] = LLVMSymbol( FnType([], noneType()), pyr_alloc_init)
+        self.symbols[0]['sprintf'] = LLVMSymbol( FnType([], noneType()), sprintf)
+        self.symbols[0]['pyr_bounds_check'] = LLVMSymbol( FnType([], noneType()), pyr_bounds_check)
         self.symbols[0]['strlen'] = LLVMSymbol( FnType([], noneType()),  strlen)
 
         self.breakBlock: list[ir.Block] = list()
 
         self.globalCount = 0
+
+        # Initialize the heap allocator before any other code runs.
+        # pyr_alloc_init is idempotent and cheap, so this is always safe.
+        self.builder.call(pyr_alloc_init, [])
 
     def emitFile(self):
         self.builder.ret(self.getConstant(0, 32))
@@ -133,12 +164,135 @@ class LLVMBackend():
         memcpy = self.symbols[0]['memcpy']
         self.builder.call(memcpy.ptr, [dst, src, size, ir.Constant(ir.IntType(1), 0)])
 
+    def doStringConcat(self, left: ir.Value, right: ir.Value) -> ir.Value:
+        """
+        Implements `left + right` for two strings.
+        `left` and `right` are `%str*` (pointers to {i32 count, i8* data}).
+        Returns a new `%str*` pointing to a fresh, null-terminated buffer.
+        """
+        zero = self.getConstant(0, 32)
+        one = self.getConstant(1, 32)
+
+        # Load count and data from left
+        leftCountPtr = self.builder.gep(left, [zero, zero])
+        leftCount = self.builder.load(leftCountPtr)
+        leftDataPtr = self.builder.gep(left, [zero, one])
+        leftData = self.builder.load(leftDataPtr)
+
+        # Load count and data from right
+        rightCountPtr = self.builder.gep(right, [zero, zero])
+        rightCount = self.builder.load(rightCountPtr)
+        rightDataPtr = self.builder.gep(right, [zero, one])
+        rightData = self.builder.load(rightDataPtr)
+
+        # Total length
+        total = self.builder.add(leftCount, rightCount)
+        # Allocate buffer (total + 1 for null terminator) on the heap
+        totalPlusOne = self.builder.add(total, self.getConstant(1, 32))
+        buffer = self.heapAlloc(ir.IntType(8), totalPlusOne)
+
+        # Copy left
+        self.doMemcpy(buffer, leftData, leftCount)
+        # Copy right at offset leftCount
+        offsetBuffer = self.builder.gep(buffer, [leftCount])
+        self.doMemcpy(offsetBuffer, rightData, rightCount)
+        # Null-terminate
+        endPtr = self.builder.gep(buffer, [total])
+        self.builder.store(ir.Constant(ir.IntType(8), 0), endPtr)
+
+        # Build result string descriptor; use left's type for the LLVM struct
+        return self.makeStringFromPointer(buffer, total, left.type.pointee)
+
+    def doStringRepeat(self, strVal: ir.Value, n: ir.Value) -> ir.Value:
+        """
+        Implements `strVal * n` where strVal is `%str*` and n is `i32`.
+        Matches CPython: negative n yields an empty string.
+        Returns a new `%str*` pointing to a fresh, null-terminated buffer.
+        """
+        zero = self.getConstant(0, 32)
+        one = self.getConstant(1, 32)
+
+        # Load count and data
+        countPtr = self.builder.gep(strVal, [zero, zero])
+        count = self.builder.load(countPtr)
+        dataPtr = self.builder.gep(strVal, [zero, one])
+        data = self.builder.load(dataPtr)
+
+        # Clamp n to >= 0 (CPython: "a" * -1 == "")
+        isNeg = self.builder.icmp_signed('<', n, zero)
+        nClamped = self.builder.select(isNeg, zero, n)
+
+        # Total length
+        total = self.builder.mul(count, nClamped)
+        # Allocate buffer (total + 1 for null terminator) on the heap
+        totalPlusOne = self.builder.add(total, self.getConstant(1, 32))
+        buffer = self.heapAlloc(ir.IntType(8), totalPlusOne)
+
+        # Loop: for i in 0..nClamped-1, copy `data` into buffer at offset i*count
+        idx = self.builder.alloca(ir.IntType(32))
+        self.builder.store(self.getConstant(0, 32), idx)
+
+        condB = self.fn.append_basic_block('repeat-cond')
+        bodyB = self.fn.append_basic_block('repeat-body')
+        afterB = self.fn.append_basic_block('repeat-after')
+
+        self.builder.branch(condB)
+
+        self.builder.position_at_end(condB)
+        i = self.builder.load(idx)
+        cond = self.builder.icmp_signed('<', i, nClamped)
+        self.builder.cbranch(cond, bodyB, afterB)
+
+        self.builder.position_at_end(bodyB)
+        offset = self.builder.mul(i, count)
+        destPtr = self.builder.gep(buffer, [offset])
+        self.doMemcpy(destPtr, data, count)
+        newI = self.builder.add(i, self.getConstant(1, 32))
+        self.builder.store(newI, idx)
+        self.builder.branch(condB)
+
+        self.builder.position_at_end(afterB)
+        # Null-terminate
+        endPtr = self.builder.gep(buffer, [total])
+        self.builder.store(ir.Constant(ir.IntType(8), 0), endPtr)
+
+        return self.makeStringFromPointer(buffer, total, strVal.type.pointee)
+
     def doStore(self, ptr: ir.Value, val: ir.Value, t: Class):
         if t.isLoadable():
             self.builder.store(val, ptr)
         else:
             size = self.getConstant(t.getTypeSize())
             self.doMemcpy(ptr, val, size)
+
+    def _llvmTypeSize(self, t: ir.Type) -> int:
+        """Return the byte size of a primitive LLVM type for heap allocation."""
+        if isinstance(t, ir.IntType):
+            return max(1, t.width // 8)
+        if isinstance(t, ir.PointerType):
+            return 4   # 32-bit target
+        if isinstance(t, ir.FloatType):
+            return 4
+        if isinstance(t, ir.DoubleType):
+            return 8
+        # For struct/array types we don't allocate; fall back to 1.
+        return 1
+
+    def heapAlloc(self, elemType: ir.Type, count: ir.Value) -> ir.Value:
+        """
+        Allocate `count` elements of `elemType` on the heap and return a
+        typed pointer (`elemType*`). The buffer survives function returns.
+
+        `count` may be a compile-time int or a runtime `ir.Value` (i32).
+        """
+        elemSize = self._llvmTypeSize(elemType)
+        if isinstance(count, int):
+            size = self.getConstant(count * elemSize, 32)
+        else:
+            size = self.builder.mul(count, self.getConstant(elemSize, 32))
+        raw = self.builder.call(self.symbols[0]['pyr_alloc'].ptr, [size])
+        # Bitcast i8* -> elemType*
+        return self.builder.bitcast(raw, ir.PointerType(elemType))
 
 
     def evalNode(self, node: CheckedNode, lhs: bool) -> ir.Value | None:
@@ -216,7 +370,15 @@ class LLVMBackend():
         zero = self.getConstant(0, 32)
         one = self.getConstant(1, 32)
 
-        # @TODO: bounds checking
+        # Optional runtime bounds check (enabled with --bounds-check).
+        # Both lists and strings share the {count, data} descriptor layout,
+        # so the count is always at field 0. Negative indices are rejected
+        # because the language does not support them.
+        if self.boundsCheck:
+            countPtr = self.builder.gep(op, [zero, zero])
+            count = self.builder.load(countPtr)
+            self.builder.call(self.symbols[0]['pyr_bounds_check'].ptr, [idx, count])
+
         dataPtr = self.builder.gep(op, [zero, one])
         data = self.builder.load(dataPtr)
         elem = self.builder.gep(data, [idx])
@@ -259,8 +421,9 @@ class LLVMBackend():
         if len(vals) == 0:
             return listV
 
-        # Allocate a buffer for the list data
-        data = self.builder.alloca(node.t.asList().base.toLLVM(), len(vals))
+        # Allocate a buffer for the list data (heap-allocated so it survives
+        # function returns).
+        data = self.heapAlloc(node.t.asList().base.toLLVM(), len(vals))
 
         # list.data = allocated buffer
         dataPtr = self.builder.gep(listV, [zero, one])
@@ -626,15 +789,42 @@ class LLVMBackend():
         assert left is not None
         assert right is not None
         assert lhs != True
+
+        # String concatenation: str + str
+        if isinstance(node.op, ast.Add) and node.left.t.name == 'str':
+            return self.doStringConcat(left, right)
+        # String repetition: str * int or int * str
+        if isinstance(node.op, ast.Mult):
+            if node.left.t.name == 'str' and node.right.t.isInt():
+                return self.doStringRepeat(left, right)
+            if node.left.t.isInt() and node.right.t.name == 'str':
+                return self.doStringRepeat(right, left)
         
         return self.doBinOp(node.left.t, left, right, node.op)
         
 
+    def declareSymbol(self, name: str, t: Class) -> ir.Value:
+        """Allocate storage for a newly-declared variable.
+
+        At module scope (only the global builtins frame is on the symbol
+        stack) the storage must be a LLVM global so function bodies can
+        reach it.  Inside functions we still use stack allocas.
+        """
+        if len(self.symbols) == 1:
+            llvmT = t.toLLVM()
+            globalV = ir.GlobalVariable(self.module, llvmT, name=f'g_{name}')
+            globalV.linkage = 'internal'
+            globalV.initializer = ir.Constant(llvmT, None)
+            self.symbols[-1][name] = LLVMSymbol(t, globalV)
+            return globalV
+        alloc = self.builder.alloca(t.toLLVM())
+        self.symbols[-1][name] = LLVMSymbol(t, alloc)
+        return alloc
+
     def evalAssign(self, node: CheckedAssignNode, lhs: bool) -> ir.Value:
         for sym in node.declaredSymbols:
-            value = self.builder.alloca(node.t.toLLVM())
-            self.symbols[-1][sym] = LLVMSymbol(node.t, value)
-        
+            self.declareSymbol(sym, node.t)
+
         ptr = self.evalNode(node.left, True)
         val = self.evalNode(node.right, False)
         assert ptr is not None
@@ -645,12 +835,23 @@ class LLVMBackend():
         return val
     
     def evalAugAssign(self, node: CheckedBinNode, lhs: bool) -> ir.Value:
+        # Evaluate the lvalue exactly once to obtain its address, then
+        # load the old value from that same address. Re-evaluating
+        # `node.left` for the read would re-run any side effects in the
+        # subscript/attribute path (e.g. `a[f()] += x` would call `f`
+        # twice and store at the wrong index on the second call).
         assign = self.evalNode(node.left, True)
-        left = self.evalNode(node.left, False)
         right = self.evalNode(node.right, False)
         assert assign is not None
-        assert left is not None
         assert right is not None
+        if node.left.t.isLoadable():
+            left = self.builder.load(assign)
+        else:
+            # For non-loadable types (lists/strings) the assignment
+            # itself is a memcpy of the whole descriptor; the 'old
+            # value' is just the source descriptor from the right-hand
+            # side of the binop.
+            left = right
         result = self.doBinOp(node.left.t, left, right, node.op)
         self.doStore(assign, result, node.left.t)
         if lhs:
@@ -710,7 +911,7 @@ class LLVMBackend():
         one = self.getConstant(1, 32)
 
         count = self.evalNode(args[0], False)
-        elems = self.builder.alloca(intType().toLLVM(), count)
+        elems = self.heapAlloc(intType().toLLVM(), count)
         idx =  self.builder.alloca(intType().toLLVM())
         self.builder.store(self.getConstant(0), idx)
 
@@ -751,8 +952,83 @@ class LLVMBackend():
         val = self.evalNode(args[0], False)
         
         return self.builder.fptosi(val, retType.toLLVM())
-        
-    
+
+    def doStr(self, args: list[CheckedNode]) -> ir.Value:
+        """str(int) or str(float): convert to string via sprintf."""
+        assert len(args) == 1
+        arg = args[0]
+        val = self.evalNode(arg, False)
+        from .type import ListType, Class
+        str_t = ListType("str", Class('char'))
+        strT = str_t.toLLVM()
+        if arg.t.isInt():
+            # Max i32 is -2147483648 (11 chars + NUL = 12 bytes)
+            buf = self.heapAlloc(ir.IntType(8), 12)
+            fmt = self.getConstString('%d')
+            self.builder.call(self.symbols[0]['sprintf'].ptr, [buf, fmt, val])
+            strlen = self.symbols[0]['strlen'].ptr
+            length = self.builder.call(strlen, [buf])
+            return self.makeStringFromPointer(buf, length, strT)
+        if arg.t.isFloat():
+            # Plenty of room for a double formatted with %f
+            buf = self.heapAlloc(ir.IntType(8), 64)
+            fmt = self.getConstString('%f')
+            self.builder.call(self.symbols[0]['sprintf'].ptr, [buf, fmt, val])
+            strlen = self.symbols[0]['strlen'].ptr
+            length = self.builder.call(strlen, [buf])
+            return self.makeStringFromPointer(buf, length, strT)
+        raise CompileError(f'str() argument must be int or float, got {arg.t}')
+
+    def doBoolCast(self, args: list[CheckedNode]) -> ir.Value:
+        """bool(int): 0 -> False, non-zero -> True."""
+        assert len(args) == 1
+        val = self.evalNode(args[0], False)
+        # icmp returns i1, which is the LLVM representation of bool
+        return self.builder.icmp_signed('!=', val, self.getConstant(0, 32))
+
+    def doAbs(self, args: list[CheckedNode]) -> ir.Value:
+        """abs(int) or abs(float)."""
+        assert len(args) == 1
+        arg = args[0]
+        val = self.evalNode(arg, False)
+        if arg.t.isInt():
+            neg = self.builder.sub(self.getConstant(0, 32), val)
+            is_neg = self.builder.icmp_signed('<', val, self.getConstant(0, 32))
+            return self.builder.select(is_neg, neg, val)
+        if arg.t.isFloat():
+            zero = ir.Constant(ir.DoubleType(), 0.0)
+            neg = self.builder.fsub(zero, val)
+            is_neg = self.builder.fcmp_ordered('<', val, zero)
+            # NOTE: llc-14 miscompiles `select` on f64 for RV32 soft-float,
+            # so floats use an explicit branch instead.
+            return self._branchSelect(is_neg, neg, val, ir.DoubleType())
+        raise CompileError(f'abs() argument must be int or float, got {arg.t}')
+
+    def _branchSelect(self, cond: ir.Value, trueVal: ir.Value, falseVal: ir.Value, llvmT: ir.Type) -> ir.Value:
+        """Select implemented with a branch + alloca instead of the LLVM
+        `select` instruction, which llc-14 miscompiles on f64 for RV32."""
+        tmp = self.builder.alloca(llvmT)
+        self.builder.store(falseVal, tmp)
+        with self.builder.if_then(cond):
+            self.builder.store(trueVal, tmp)
+        return self.builder.load(tmp)
+
+    def doMinMax(self, args: list[CheckedNode], is_max: bool) -> ir.Value:
+        """min(int, int), max(int, int), min(float, float), max(float, float)."""
+        assert len(args) == 2
+        a = self.evalNode(args[0], False)
+        b = self.evalNode(args[1], False)
+        if args[0].t.isInt() and args[1].t.isInt():
+            op = '>' if is_max else '<'
+            cond = self.builder.icmp_signed(op, a, b)
+            return self.builder.select(cond, a, b)
+        if args[0].t.isFloat() and args[1].t.isFloat():
+            op = 'ogt' if is_max else 'olt'
+            cond = self.builder.fcmp_ordered(op, a, b)
+            # NOTE: no `select` on f64 (see _branchSelect)
+            return self._branchSelect(cond, a, b, ir.DoubleType())
+        raise CompileError(f'min/max arguments must both be int or both float')
+
     def evalCall(self, node: CheckedCallNode, lhs: bool) -> ir.Value:
         match node.fnName:
             case 'print':
@@ -767,6 +1043,16 @@ class LLVMBackend():
                 return self.doFloatCast(node.args, node.fnType.asCallable().returnType)
             case 'int':
                 return self.doIntCast(node.args, node.fnType.asCallable().returnType)
+            case 'str':
+                return self.doStr(node.args)
+            case 'bool':
+                return self.doBoolCast(node.args)
+            case 'abs':
+                return self.doAbs(node.args)
+            case 'min':
+                return self.doMinMax(node.args, is_max=False)
+            case 'max':
+                return self.doMinMax(node.args, is_max=True)
 
             case None:
                 pass

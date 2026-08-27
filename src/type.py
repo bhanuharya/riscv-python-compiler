@@ -193,7 +193,13 @@ class FnType(Class):
             else:
                 args.append(arg.toLLVM())
 
-        self.llvmTypeCached = ir.FunctionType(self.returnType.toLLVM(), args)
+        # Non-loadable return types (str, list[T]) are returned by pointer
+        # since LLVM does not return structs by value in the simple calling
+        # convention used here.
+        retType = self.returnType.toLLVM()
+        if not self.returnType.isLoadable():
+            retType = ir.PointerType(retType)
+        self.llvmTypeCached = ir.FunctionType(retType, args)
         return self.llvmTypeCached
 
     def getTypeSize(self) -> int:
@@ -254,9 +260,14 @@ class ListType(Class):
         return builder.load(builder.gep(llvmV, [zero, one]))
 
     def canPerformBinOp(self, other: Class, op) -> bool:
-        _ = other
         match op:
             case ast.Eq() | ast.NotEq():
                 return self.isAssignable(other)
+            case ast.Add():
+                # str + str -> str
+                return self.name == 'str' and other.name == 'str'
+            case ast.Mult():
+                # str * int -> str
+                return self.name == 'str' and other.isInt()
         return False
 

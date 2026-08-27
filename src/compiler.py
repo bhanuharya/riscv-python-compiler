@@ -14,9 +14,9 @@ class Compiler():
     astRoot: ast.AST | None
     checkedRoot: CheckedNode | None
 
-    def __init__(self, fileName, outFile: str = 'out.ll'):
+    def __init__(self, fileName, outFile: str = 'out.ll', boundsCheck: bool = False):
         self.tc = TypeChecker(fileName)
-        self.backend = LLVMBackend(fileName, outFile=outFile)
+        self.backend = LLVMBackend(fileName, outFile=outFile, boundsCheck=boundsCheck)
         self.ast = None
         self.checkedRoot = None
         return

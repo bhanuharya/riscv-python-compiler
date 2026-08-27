@@ -72,9 +72,16 @@ class TypeChecker():
         self.symbols[0]['input'] = FnType([objectType()], stringType)
         self.symbols[0]['range'] = FnType([intType], ListType(None, intType))
 
-        # Casts
+        # Conversions
         self.symbols[0]['float'] = FnType([intType], floatType)
         self.symbols[0]['int'] = FnType([floatType], intType)
+        self.symbols[0]['str'] = FnType([objectType()], stringType)
+        self.symbols[0]['bool'] = FnType([intType], boolType)
+
+        # Numeric
+        self.symbols[0]['abs'] = FnType([objectType()], intType)
+        self.symbols[0]['min'] = FnType([objectType(), objectType()], intType)
+        self.symbols[0]['max'] = FnType([objectType(), objectType()], intType)
 
         # Each of these functions have a seperate implementation in the backend
         # and are not just normal calls
@@ -85,6 +92,11 @@ class TypeChecker():
         self.intrinsics.add('range')
         self.intrinsics.add('float')
         self.intrinsics.add('int')
+        self.intrinsics.add('str')
+        self.intrinsics.add('bool')
+        self.intrinsics.add('abs')
+        self.intrinsics.add('min')
+        self.intrinsics.add('max')
 
     def findSymbol(self, name: str, errroIfNotFound=True) -> Class | None:
         """
@@ -550,6 +562,12 @@ class TypeChecker():
         if intrinName == 'print':
             argNodes = [self.evalNode(a) for a in node.args]
             return CheckedCallNode(node, checked, argNodes, fnType, intrinName)
+
+        # abs/min/max/str/bool are polymorphic: their return type depends on
+        # the argument types, so they are type-checked here instead of via
+        # their registered (placeholder) FnType.
+        if intrinName in ('abs', 'min', 'max', 'str', 'bool'):
+            return self.evalPolymorphicBuiltin(node, checked, fnType, intrinName)
         
         params = fnType.asCallable().args
         gaveCount = len(node.args)
@@ -565,6 +583,42 @@ class TypeChecker():
                 raiseError(self.errorInfo, f'Argument #{i+1} is of type {passed.t} which is not compatible with function parameter of type {param}')
         
         return CheckedCallNode(node, checked, argNodes, fnType, intrinName)
+
+    def evalPolymorphicBuiltin(self, node: ast.Call, checked, fnType, name: str) -> CheckedCallNode:
+        """
+        Type-check builtins whose result type is derived from the argument
+        types and build the precise FnType for the call site.
+        """
+        self.errorInfo.lineNo = node.lineno
+        argNodes = [self.evalNode(a) for a in node.args]
+
+        expectCount = 1 if name in ('abs', 'str', 'bool') else 2
+        if len(argNodes) != expectCount:
+            raiseError(self.errorInfo, f"{name}() expects {expectCount} argument{'s' if expectCount != 1 else ''} but {len(argNodes)} {'were' if len(argNodes) != 1 else 'was'} provided")
+
+        if name == 'abs':
+            t = argNodes[0].t
+            if not (t.isInt() or t.isFloat()):
+                raiseError(self.errorInfo, f'abs() argument must be int or float, got {t}')
+            retT = t
+        elif name == 'str':
+            t = argNodes[0].t
+            if not (t.isInt() or t.isFloat()):
+                raiseError(self.errorInfo, f'str() argument must be int or float, got {t}')
+            retT = self.types['str']
+        elif name == 'bool':
+            t = argNodes[0].t
+            if not t.isInt():
+                raiseError(self.errorInfo, f'bool() argument must be int, got {t}')
+            retT = self.types['bool']
+        else:  # min / max
+            a, b = argNodes[0].t, argNodes[1].t
+            if not ((a.isInt() and b.isInt()) or (a.isFloat() and b.isFloat())):
+                raiseError(self.errorInfo, f'{name}() arguments must both be int or both be float, got {a} and {b}')
+            retT = a
+
+        preciseType = FnType(args=[a.t for a in argNodes], returnType=retT)
+        return CheckedCallNode(node, checked, argNodes, preciseType, name)
 
     def evalAugAssign(self, node: ast.AugAssign) -> CheckedNode:
         """
@@ -636,34 +690,37 @@ class TypeChecker():
     def evalAssign(self, node: ast.Assign) -> CheckedNode:
         """
         a = 10
-        Node:
-            targets=[
-                    Name(a)]
-            value=Constant(value=10)
-
-        Currently we don't support multiple targets
+        my_list[0] = 5
         """
         self.errorInfo.lineNo = node.lineno
-        names = []
-        for t in node.targets:
-            if isinstance(t, ast.Name):
-                names.append(t.id)
-            else:
-                raiseError(self.errorInfo, f'Currently only name assignment is supported, tried to assign to {t}')
-
-        right = self.evalNode(node.value)
-
-        if len(names) > 1:
+        if len(node.targets) > 1:
             raiseError(self.errorInfo, f'Tuples are not currently supported')
 
+        target = node.targets[0]
+        right = self.evalNode(node.value)
+
+        if isinstance(target, ast.Subscript):
+            # Element assignment: my_list[i] = value. The list already exists;
+            # no new symbol is declared. The value must be assignable to the
+            # element type.
+            left = self.evalSubscript(target)
+            self.errorInfo.lineNo = node.lineno
+            if not left.t.isAssignable(right.t):
+                raiseError(self.errorInfo, f'Cannot assign value of type {right.t} to element of type {left.t}')
+            return CheckedAssignNode(node, left, right, [])
+
+        if not isinstance(target, ast.Name):
+            raiseError(self.errorInfo, f'Currently only name and subscript assignment is supported, tried to assign to {target}')
+
+        name = target.id
         declared = list[str]()
-        name = names[0]
         sym = self.findSymbol(name, False)
         if sym is None:
-            self.symbols[-1][names[0]] = right.t
-            declared.append(names[0])
+            self.symbols[-1][name] = right.t
+            declared.append(name)
 
-        left = self.evalNode(node.targets[0])
+        left = self.evalNode(target)
+        self.errorInfo.lineNo = node.lineno
         if not left.t.isAssignable(right.t):
             raiseError(self.errorInfo, f'Cannot assign value of type {right.t} to left-hand side of type {left.t}')
 
@@ -690,6 +747,12 @@ class TypeChecker():
         self.errorInfo.lineNo = node.lineno
         left = self.evalNode(node.left)
         right = self.evalNode(node.right)
+
+        # int * str -> str (commutative string repetition)
+        if isinstance(node.op, ast.Mult) and left.t.isInt() and right.t.name == 'str':
+            result = CheckedBinNode(node, left, right, node.op)
+            result.t = right.t  # result is str, not int
+            return result
 
         if left.t.canPerformBinOp(right.t, node.op):
             return CheckedBinNode(node, left, right, node.op)
